@@ -8,10 +8,11 @@
 	},
 	"author" : "Edgar Valencia <isc.edgarvalencia@gmail.com>",
 	"permissions" : [
-		"cookies",
+		"notifications",
 		"http://khaleesi.unisem.mx/",
-		"http://192.168.16.15:8081/"
+		"http://localhost:8000/"
 	],
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"background" : {
 		"scripts" : ["./js/app.js"]
 	}
