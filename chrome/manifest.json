@@ -16,6 +16,11 @@
 		"http://khaleesi.unisem.mx/",
 		"http://localhost:8000/"
 	],
+	"icons": {
+		"16": "img/16.png",
+		"48": "img/48.png",
+		"128": "img/128.png" 
+	},
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"background" : {
 		"scripts" : ["./js/app.js"]

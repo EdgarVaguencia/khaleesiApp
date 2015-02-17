@@ -10,7 +10,7 @@ module.exports = Marionette.ItemView.extend({
 
 	className: 'task',
 
-	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %><%= module %></span></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
+	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
 
 	events: {
 		'click .pause' : 'pause',
