@@ -1,0 +1,3 @@
+# node-modules
+chrome/js/node_modules/*
+chrome/js/npm-debug.log

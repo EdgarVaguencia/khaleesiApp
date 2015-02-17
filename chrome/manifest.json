@@ -1,0 +1,28 @@
+{
+	"manifest_version" : 2,
+	"name" : "Khaleesi chrome extension",
+	"description" : "Administración de tus tareas del sistema khaleesi",
+	"version" : "0.0.0",
+	"browser_action" : {
+		"default_popup" : "index.html"
+	},
+	"author" : "Edgar Valencia <isc.edgarvalencia@gmail.com>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/EdgarVaguencia/khaleesiApp"
+	},
+	"permissions" : [
+		"notifications",
+		"http://khaleesi.unisem.mx/",
+		"http://localhost:8000/"
+	],
+	"icons": {
+		"16": "img/16.png",
+		"48": "img/48.png",
+		"128": "img/128.png" 
+	},
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+	"background" : {
+		"scripts" : ["./js/app.js"]
+	}
+}
