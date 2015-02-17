@@ -27,12 +27,13 @@ module.exports = Marionette.ItemView.extend({
 
 	send: function(idType){
 		var self = this;
-		var url = 'http://khaleesi.unisem.mx/admin/track/tarea/'+this.model.get('pkid')+'/board/'+idType;
+		var urlSend = Backbone.app.url+'track/tarea/'+this.model.get('pkid')+'/board/'+idType;
 		var req = new XMLHttpRequest();
-		req.open('GET',url,true);
+		req.open('GET',urlSend,true);
 		req.onload = function(){
-			if ( req.readyState ===4 ){
-				console.log(req.response);
+			if ( req.readyState === 4 && req.status === 200 ){
+				self.destroy();
+				Backbone.app.resource();
 			}
 		}
 		req.send(null);

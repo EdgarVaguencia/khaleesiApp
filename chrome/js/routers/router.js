@@ -15,19 +15,22 @@ module.exports = Backbone.Router.extend({
 		'index.html' : 'resource',
 	},
 
-	initialize : function(){
+	initialize : function(obj){
+		if( typeof obj === 'object' ){
+			this.url = obj.url;
+		}
 		Backbone.history.start({ pushState : true });
-		this.now = new Date;
+		//this.now = new Date;
 	},
 
 	resource : function(){
 		var self = this;
-		var url = 'http://khaleesi.unisem.mx/admin/json/board/';
+		var urlJson = this.url+'json/board/';
 		var req = new XMLHttpRequest();
-		req.open('GET',url,true);
+		req.open('GET',urlJson,true);
 		req.responseType = 'text';
 		req.onload = function(){
-			if (req.readyState === 4){
+			if ( req.readyState === 4 && req.status === 200 ){
 				if( req.response.substring(0,1) == '<' ){
 					self.Login = new LoginView();
 					self.Login.render();
@@ -35,6 +38,8 @@ module.exports = Backbone.Router.extend({
 					var data = JSON.parse(req.response);
 					self.data(data);
 				}
+			}else if( req.readyState === 4 && req.status === 404 ){
+				
 			}
 		}
 		req.send(null);

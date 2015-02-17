@@ -12,10 +12,11 @@ module.exports = Backbone.Collection.extend({
 var Backbone = require('backbone'),
 	Router = require('./routers/router'),
 	$ = require('jquery')
-	Backbone.$ = $;
+	Backbone.$ = $,
+	UrlSite = 'http://localhost:8000/admin/' ;//"http://khaleesi.unisem.mx/admin/";
 
 $(function(){
-	 Backbone.app = new Router();	
+	 Backbone.app = new Router({ url: UrlSite });
 });
 
 },{"./routers/router":13,"backbone":9,"jquery":11}],3:[function(require,module,exports){
@@ -17388,19 +17389,22 @@ module.exports = Backbone.Router.extend({
 		'index.html' : 'resource',
 	},
 
-	initialize : function(){
+	initialize : function(obj){
+		if( typeof obj === 'object' ){
+			this.url = obj.url;
+		}
 		Backbone.history.start({ pushState : true });
-		this.now = new Date;
+		//this.now = new Date;
 	},
 
 	resource : function(){
 		var self = this;
-		var url = 'http://localhost:8000/admin/json/board/';
+		var urlJson = this.url+'json/board/';
 		var req = new XMLHttpRequest();
-		req.open('GET',url,true);
+		req.open('GET',urlJson,true);
 		req.responseType = 'text';
 		req.onload = function(){
-			if (req.readyState === 4){
+			if ( req.readyState === 4 && req.status === 200 ){
 				if( req.response.substring(0,1) == '<' ){
 					self.Login = new LoginView();
 					self.Login.render();
@@ -17408,6 +17412,8 @@ module.exports = Backbone.Router.extend({
 					var data = JSON.parse(req.response);
 					self.data(data);
 				}
+			}else if( req.readyState === 4 && req.status === 404 ){
+				
 			}
 		}
 		req.send(null);
@@ -17441,15 +17447,13 @@ module.exports = Backbone.Router.extend({
 		if( time != '' ){
 			time = 1000;
 		}
-		//console.log(time);
 
 		var self = this;
 		var clockTime = setInterval(function(){
 			var clock = new Date;
-			if( clock.getHours() === 17 && clock.getMinutes() === 41 ){
+			if( clock.getHours() === 17 && clock.getMinutes() === 00 ){
 				self.notification();
 				clearInterval(clockTime);
-				//self.timer(300000);
 			}
 		},time);
 	},
@@ -17485,7 +17489,7 @@ module.exports = Backbone.View.extend({
 	},
 
 	openURL : function(){
-		chrome.tabs.create({'url':'http://khaleesi.unisem.mx/'});
+		chrome.tabs.create({'url': Backbone.app.url });
 	},
 
 });
@@ -17520,12 +17524,13 @@ module.exports = Marionette.ItemView.extend({
 
 	send: function(idType){
 		var self = this;
-		var url = 'http://localhost:8000/admin/track/tarea/'+this.model.get('pkid')+'/board/'+idType;
+		var urlSend = Backbone.app.url+'track/tarea/'+this.model.get('pkid')+'/board/'+idType;
 		var req = new XMLHttpRequest();
-		req.open('GET',url,true);
+		req.open('GET',urlSend,true);
 		req.onload = function(){
-			if ( req.readyState ===4 ){
-				console.log(req.response);
+			if ( req.readyState === 4 && req.status === 200 ){
+				self.destroy();
+				Backbone.app.resource();
 			}
 		}
 		req.send(null);
@@ -17549,7 +17554,8 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	open: function(){
-		chrome.tabs.create({ 'url': 'http://khaleesi.unisem.mx/' });
+		var urlTasks = Backbone.app.url+'track/tarea/';
+		chrome.tabs.create({ 'url': urlTasks });
 	},
 
 });
@@ -17566,9 +17572,13 @@ module.exports = Marionette.CollectionView.extend({
 
 	el: $('#body'),
 
-	childView : TaskItem,
+	childView: TaskItem,
 
-	emptyView : TaskEmpty,
+	emptyView: TaskEmpty,
+
+	onBeforeRender: function(){
+		this.$el.empty();
+	},
 
 });
 
@@ -17580,9 +17590,17 @@ module.exports = Backbone.View.extend({
 
 	el : $('header'),
 
+	events: {
+		'click .title' : 'site',
+	},
+
 	displayUser : function(){
 		this.$el.find('.userMenu').html(this.model.get('username'));
 	},
+
+	site: function(){
+		chrome.tabs.create({ url: Backbone.app.url });
+	}
 
 });
 

@@ -13,7 +13,8 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	open: function(){
-		chrome.tabs.create({ 'url': 'http://khaleesi.unisem.mx/' });
+		var urlTasks = Backbone.app.url+'track/tarea/';
+		chrome.tabs.create({ 'url': urlTasks });
 	},
 
 });

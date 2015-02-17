@@ -16,7 +16,7 @@ module.exports = Backbone.View.extend({
 	},
 
 	openURL : function(){
-		chrome.tabs.create({'url':'http://khaleesi.unisem.mx/'});
+		chrome.tabs.create({'url': Backbone.app.url });
 	},
 
 });

@@ -9,8 +9,12 @@ module.exports = Marionette.CollectionView.extend({
 
 	el: $('#body'),
 
-	childView : TaskItem,
+	childView: TaskItem,
 
-	emptyView : TaskEmpty,
+	emptyView: TaskEmpty,
+
+	onBeforeRender: function(){
+		this.$el.empty();
+	},
 
 });
