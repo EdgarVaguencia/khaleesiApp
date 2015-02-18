@@ -1,9 +1,9 @@
 {
-  "name": "khaleesi",
-  "title": "Khaleesi",
+  "name": "khaleesitasks",
+  "title": "KhaleesiTasks",
   "id": "jid1-qFvqDzVeUpwxnQ",
   "description": "Administra tus tareas de khaleesi",
-  "author": "",
+  "author": "Edgar Valencia",
   "license": "MPL 2.0",
   "version": "0.1",
   "permissions": {
