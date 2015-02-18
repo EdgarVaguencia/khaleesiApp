@@ -14,7 +14,7 @@ module.exports = Marionette.ItemView.extend({
 
 	open: function(){
 		var urlTasks = Backbone.app.url+'track/tarea/';
-		chrome.tabs.create({ 'url': urlTasks });
+		self.port.emit('newTab',urlTasks);
 	},
 
 });

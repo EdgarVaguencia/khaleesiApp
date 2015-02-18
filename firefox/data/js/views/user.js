@@ -14,7 +14,7 @@ module.exports = Backbone.View.extend({
 	},
 
 	site: function(){
-		chrome.tabs.create({ url: Backbone.app.url });
+		self.port.emit('newTab',Backbone.app.url);
 	}
 
 });

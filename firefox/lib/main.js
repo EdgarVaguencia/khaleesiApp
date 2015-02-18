@@ -1,6 +1,6 @@
 var { ToggleButton } = require('sdk/ui/button/toggle'),
-	panels = require("sdk/panel"),
 	self = require("sdk/self"),
+	panels = require("sdk/panel"),
 	tabs = require("sdk/tabs");
 
 var button = ToggleButton({
@@ -37,7 +37,6 @@ panel.on("show",function(){
 	panel.port.emit("resource");
 });
 
-self.port.on('newTab',function(link){
-	console.log(link);
+panel.port.on('newTab',function(link){
 	tabs.open(link);
 });

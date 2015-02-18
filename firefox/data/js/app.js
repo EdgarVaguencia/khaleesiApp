@@ -28,8 +28,8 @@ var Backbone = require('backbone');
 module.exports = Backbone.Model.extend();
 
 },{"backbone":9}],4:[function(require,module,exports){
-arguments[4][3][0].apply(exports,arguments)
-},{"backbone":9,"dup":3}],5:[function(require,module,exports){
+module.exports=require(3)
+},{"backbone":9,"e:\\Documents\\ProyectosFree\\Khaleesi\\khaleesiApp\\firefox\\data\\js\\models\\task.js":3}],5:[function(require,module,exports){
 // MarionetteJS (Backbone.Marionette)
 // ----------------------------------
 // v2.3.2
@@ -17490,9 +17490,7 @@ module.exports = Backbone.View.extend({
 	},
 
 	openURL : function(){
-		console.log(self.port.emit)
-		self.port.emit('newTab',Backbone.app.url);
-		//chrome.tabs.create({'url': Backbone.app.url });
+		self.port.emit('newTab', Backbone.app.url);
 	},
 
 });
@@ -17558,7 +17556,7 @@ module.exports = Marionette.ItemView.extend({
 
 	open: function(){
 		var urlTasks = Backbone.app.url+'track/tarea/';
-		chrome.tabs.create({ 'url': urlTasks });
+		self.port.emit('newTab',urlTasks);
 	},
 
 });
@@ -17602,7 +17600,7 @@ module.exports = Backbone.View.extend({
 	},
 
 	site: function(){
-		chrome.tabs.create({ url: Backbone.app.url });
+		self.port.emit('newTab',Backbone.app.url);
 	}
 
 });
