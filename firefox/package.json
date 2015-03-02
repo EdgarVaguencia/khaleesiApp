@@ -5,8 +5,13 @@
   "description": "Administra tus tareas de khaleesi",
   "author": "",
   "license": "MPL 2.0",
-  "version": "0.1",
+  "version": "0.1.1",
   "permissions": {
-    "cross-domain-content": ["http://khaleesi.unisem.mx"]
+    "cross-domain-content": [
+      "http://khaleesi.unisem.mx"
+    ]
+  },
+  "dependencies": {
+    "underscore": "^1.8.2"
   }
 }
