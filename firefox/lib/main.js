@@ -36,9 +36,17 @@ function handleHide() {
 	button.state('window', {checked: false});
 }
 
-// Empty Task
+// View Empty Task
 function viewEmpty(){
 	var html = '<div class="login"><div>No tienes tareas iniciadas, accede al sistema para iniciar una y "A darle átomos"</div><span class="btn" id="newTask">Crear nueva</span></div>';
+	panel.port.emit('render',html);
+}
+
+// View Tasks
+function viewTasks(tasks){
+	templateHTML = '<% _.each(tasksList,function(x){ %><div class="task"><div class="detail"><span class="title"><%= x.nombre %></span><span class="subtitle"><%= x.proyecto.nombre %>, <%= x.modulo.nombre %></span></div><div class="action" rel="<%= x.id %>"><span class="pause">Pausa</span><span class="finish">Terminar</span></div></div><% }); %>';
+	var compiled = _.template(templateHTML);
+	var html = compiled({ tasksList : tasks});
 	panel.port.emit('render',html);
 }
 
@@ -66,9 +74,10 @@ panel.port.on('openTab',function(obj){
 	}
 });
 
+// JSON request
 panel.port.on('data',function(data){
 	if( data.tasks.length > 0 ){
-		console.log(data.tasks);
+		viewTasks(data.tasks);
 	}else{
 		viewEmpty();
 	}
@@ -76,3 +85,5 @@ panel.port.on('data',function(data){
 		//console.log(data.last_tasks);
 	}
 });
+
+//panel.port.on('')
