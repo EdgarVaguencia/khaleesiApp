@@ -3,6 +3,7 @@ var Backbone = require('backbone'),
 	LoginView = require('../views/login'),
 	UserView = require('../views/user'),
 	TaskView = require('../views/taskList'),
+	OldTaskView = require('../views/oldTaskList'),
 	//ClockView = require('../views/clock'),
 	TaskCollection = require('../collections/task'),
 	UserModel = require('../models/user'),
@@ -11,7 +12,7 @@ var Backbone = require('backbone'),
 module.exports = Backbone.Router.extend({
 
 	routes :{
-		'_generated_background_page.html' : 'timer',
+		// '_generated_background_page.html' : 'timer',
 		'index.html' : 'resource',
 	},
 
@@ -39,7 +40,7 @@ module.exports = Backbone.Router.extend({
 					self.data(data);
 				}
 			}else if( req.readyState === 4 && req.status === 404 ){
-				
+
 			}
 		}
 		req.send(null);
@@ -50,7 +51,7 @@ module.exports = Backbone.Router.extend({
 
 		this.User = new UserView({ model: new UserModel({ username : resp.user.username, first_name: resp.user.first_name, last_name: resp.user.last_name }) });
 		this.User.displayUser();
-
+		// Active Tasks
 		this.tasks = new TaskCollection();
 		if( resp.tasks.length > 0 ){
 			$.each( resp.tasks, function(k,i){
@@ -66,6 +67,21 @@ module.exports = Backbone.Router.extend({
 		}
 		this.taskView = new TaskView({ collection: this.tasks });
 		this.taskView.render();
+		// Old Tasks
+		this.oldTasks = new TaskCollection();
+		if( resp.last_tasks.length > 0 ){
+			$.each( resp.last_tasks, function(k,i){
+				self.oldTasks.add( new TaskModel({
+					pkid : i.id,
+					name : i.nombre,
+					status : i.status_id,
+					project : i.proyecto.nombre,
+					module : i.modulo.nombre,
+				}));
+			});
+		}
+		this.oldTaskView = new OldTaskView({ collection : this.oldTasks });
+		this.oldTaskView.render();
 	},
 
 	timer: function(time){
