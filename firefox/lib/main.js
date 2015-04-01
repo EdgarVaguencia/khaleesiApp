@@ -49,7 +49,13 @@ function viewTasks(tasks){
 	var html = compiled({ tasksList : tasks});
 	panel.port.emit('render',html);
 }
-
+// View Last Task
+function viewLastTask(tasks){
+	templateHTML = '<% _.each(tasksList,function(x){ %><div class="old"><div><span class="title"><%= x.nombre %></span><span class="subtitle"><%= x.proyecto.nombre %>, <%= x.modulo.nombre %></span></div><div rel="<%= x.id %>"><span class="play">Iniciar</span></div></div><% }); %>';
+	var compiled = _.template(templateHTML);
+	var html = compiled({ tasksList : tasks });
+	panel.port.emit('renderOld',html);
+}
 // View Login
 panel.port.on('login',function(){
 	templateHTML = '<div class="login"><div>Identificate para poder comenzar</div><span class="btn" id="login"><%= value %></span></div>';
@@ -82,7 +88,7 @@ panel.port.on('data',function(data){
 		viewEmpty();
 	}
 	if( data.last_tasks.length > 0 ){
-		//console.log(data.last_tasks);
+		viewLastTask(data.last_tasks);
 	}
 });
 

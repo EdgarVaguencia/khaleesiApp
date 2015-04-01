@@ -1,6 +1,7 @@
 var UrlSite = "http://khaleesi.unisem.mx/admin/",
   spanSite = document.getElementById('site'),
-  el = document.getElementById('body');
+  el = document.getElementById('body'),
+  elOld = document.getElementById('last');
 
 // Link title
 if( spanSite ){
@@ -18,6 +19,12 @@ self.port.on('resource',function(){
 self.port.on('render',function(html){
   var selfInit = this;
   selfInit.el.innerHTML = html;
+  listenEvents();
+});
+// Render html old Taks
+self.port.on('renderOld',function(html){
+  var selfInit = this;
+  selfInit.elOld.innerHTML = html;
   listenEvents();
 });
 
@@ -67,6 +74,7 @@ function listenEvents(){
     btnLogin = document.getElementById('login'),
     btnNewTask = document.getElementById('newTask'),
     btnPause = document.getElementsByClassName('pause');
+    btnPlay = document.getElementsByClassName('play');
   if( btnLogin ){
     btnLogin.addEventListener('click',function(e){
       self.port.emit('openTab',{ name : 'login' });
@@ -81,6 +89,13 @@ function listenEvents(){
     for(x=0;x<btnPause.length;x++){
       btnPause.item(x).addEventListener('click',function(e){
         sendAction({ 'action': 3, 'task' : e.target.parentNode.attributes.rel.value });
+      });
+    }
+  }
+  if( btnPlay.length > 0 ){
+    for( x=0;x<btnPlay.length;x++ ){
+      btnPlay.item(x).addEventListener('click',function(e){
+        sendAction({ 'action': 2, 'task': e.target.parentNode.attributes.rel.value });
       });
     }
   }
