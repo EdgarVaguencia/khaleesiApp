@@ -26,7 +26,7 @@ module.exports = Backbone.Model.extend();
 
 },{"backbone":9}],4:[function(require,module,exports){
 module.exports=require(3)
-},{"backbone":9,"e:\\Documents\\ProyectosFree\\Khaleesi\\khaleesiApp\\chrome\\js\\models\\task.js":3}],5:[function(require,module,exports){
+},{"/home/edgar/Documentos/ProyectosFree/khaleesi/chrome/js/models/task.js":3,"backbone":9}],5:[function(require,module,exports){
 // MarionetteJS (Backbone.Marionette)
 // ----------------------------------
 // v2.4.1
@@ -16186,7 +16186,7 @@ return jQuery;
 }));
 
 },{}],11:[function(require,module,exports){
-//     Underscore.js 1.8.2
+//     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
@@ -16243,7 +16243,7 @@ return jQuery;
   }
 
   // Current version.
-  _.VERSION = '1.8.2';
+  _.VERSION = '1.8.3';
 
   // Internal function that returns an efficient (for current engines) version
   // of the passed-in callback, to be repeatedly applied in other Underscore
@@ -16310,12 +16310,20 @@ return jQuery;
     return result;
   };
 
+  var property = function(key) {
+    return function(obj) {
+      return obj == null ? void 0 : obj[key];
+    };
+  };
+
   // Helper for collection methods to determine whether a collection
   // should be iterated as an array or as an object
   // Related: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength
+  // Avoids a very nasty iOS 8 JIT bug on ARM-64. #2094
   var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
+  var getLength = property('length');
   var isArrayLike = function(collection) {
-    var length = collection && collection.length;
+    var length = getLength(collection);
     return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
   };
 
@@ -16440,11 +16448,12 @@ return jQuery;
     return false;
   };
 
-  // Determine if the array or object contains a given value (using `===`).
+  // Determine if the array or object contains a given item (using `===`).
   // Aliased as `includes` and `include`.
-  _.contains = _.includes = _.include = function(obj, target, fromIndex) {
+  _.contains = _.includes = _.include = function(obj, item, fromIndex, guard) {
     if (!isArrayLike(obj)) obj = _.values(obj);
-    return _.indexOf(obj, target, typeof fromIndex == 'number' && fromIndex) >= 0;
+    if (typeof fromIndex != 'number' || guard) fromIndex = 0;
+    return _.indexOf(obj, item, fromIndex) >= 0;
   };
 
   // Invoke a method (with arguments) on every item in a collection.
@@ -16668,7 +16677,7 @@ return jQuery;
   // Internal implementation of a recursive `flatten` function.
   var flatten = function(input, shallow, strict, startIndex) {
     var output = [], idx = 0;
-    for (var i = startIndex || 0, length = input && input.length; i < length; i++) {
+    for (var i = startIndex || 0, length = getLength(input); i < length; i++) {
       var value = input[i];
       if (isArrayLike(value) && (_.isArray(value) || _.isArguments(value))) {
         //flatten current level of array or arguments object
@@ -16699,7 +16708,6 @@ return jQuery;
   // been sorted, you have the option of using a faster algorithm.
   // Aliased as `unique`.
   _.uniq = _.unique = function(array, isSorted, iteratee, context) {
-    if (array == null) return [];
     if (!_.isBoolean(isSorted)) {
       context = iteratee;
       iteratee = isSorted;
@@ -16708,7 +16716,7 @@ return jQuery;
     if (iteratee != null) iteratee = cb(iteratee, context);
     var result = [];
     var seen = [];
-    for (var i = 0, length = array.length; i < length; i++) {
+    for (var i = 0, length = getLength(array); i < length; i++) {
       var value = array[i],
           computed = iteratee ? iteratee(value, i, array) : value;
       if (isSorted) {
@@ -16735,10 +16743,9 @@ return jQuery;
   // Produce an array that contains every item shared between all the
   // passed-in arrays.
   _.intersection = function(array) {
-    if (array == null) return [];
     var result = [];
     var argsLength = arguments.length;
-    for (var i = 0, length = array.length; i < length; i++) {
+    for (var i = 0, length = getLength(array); i < length; i++) {
       var item = array[i];
       if (_.contains(result, item)) continue;
       for (var j = 1; j < argsLength; j++) {
@@ -16767,7 +16774,7 @@ return jQuery;
   // Complement of _.zip. Unzip accepts an array of arrays and groups
   // each array's elements on shared indices
   _.unzip = function(array) {
-    var length = array && _.max(array, 'length').length || 0;
+    var length = array && _.max(array, getLength).length || 0;
     var result = Array(length);
 
     for (var index = 0; index < length; index++) {
@@ -16781,7 +16788,7 @@ return jQuery;
   // the corresponding values.
   _.object = function(list, values) {
     var result = {};
-    for (var i = 0, length = list && list.length; i < length; i++) {
+    for (var i = 0, length = getLength(list); i < length; i++) {
       if (values) {
         result[list[i]] = values[i];
       } else {
@@ -16791,42 +16798,11 @@ return jQuery;
     return result;
   };
 
-  // Return the position of the first occurrence of an item in an array,
-  // or -1 if the item is not included in the array.
-  // If the array is large and already in sort order, pass `true`
-  // for **isSorted** to use binary search.
-  _.indexOf = function(array, item, isSorted) {
-    var i = 0, length = array && array.length;
-    if (typeof isSorted == 'number') {
-      i = isSorted < 0 ? Math.max(0, length + isSorted) : isSorted;
-    } else if (isSorted && length) {
-      i = _.sortedIndex(array, item);
-      return array[i] === item ? i : -1;
-    }
-    if (item !== item) {
-      return _.findIndex(slice.call(array, i), _.isNaN);
-    }
-    for (; i < length; i++) if (array[i] === item) return i;
-    return -1;
-  };
-
-  _.lastIndexOf = function(array, item, from) {
-    var idx = array ? array.length : 0;
-    if (typeof from == 'number') {
-      idx = from < 0 ? idx + from + 1 : Math.min(idx, from + 1);
-    }
-    if (item !== item) {
-      return _.findLastIndex(slice.call(array, 0, idx), _.isNaN);
-    }
-    while (--idx >= 0) if (array[idx] === item) return idx;
-    return -1;
-  };
-
   // Generator function to create the findIndex and findLastIndex functions
-  function createIndexFinder(dir) {
+  function createPredicateIndexFinder(dir) {
     return function(array, predicate, context) {
       predicate = cb(predicate, context);
-      var length = array != null && array.length;
+      var length = getLength(array);
       var index = dir > 0 ? 0 : length - 1;
       for (; index >= 0 && index < length; index += dir) {
         if (predicate(array[index], index, array)) return index;
@@ -16836,16 +16812,15 @@ return jQuery;
   }
 
   // Returns the first index on an array-like that passes a predicate test
-  _.findIndex = createIndexFinder(1);
-
-  _.findLastIndex = createIndexFinder(-1);
+  _.findIndex = createPredicateIndexFinder(1);
+  _.findLastIndex = createPredicateIndexFinder(-1);
 
   // Use a comparator function to figure out the smallest index at which
   // an object should be inserted so as to maintain order. Uses binary search.
   _.sortedIndex = function(array, obj, iteratee, context) {
     iteratee = cb(iteratee, context, 1);
     var value = iteratee(obj);
-    var low = 0, high = array.length;
+    var low = 0, high = getLength(array);
     while (low < high) {
       var mid = Math.floor((low + high) / 2);
       if (iteratee(array[mid]) < value) low = mid + 1; else high = mid;
@@ -16853,11 +16828,43 @@ return jQuery;
     return low;
   };
 
+  // Generator function to create the indexOf and lastIndexOf functions
+  function createIndexFinder(dir, predicateFind, sortedIndex) {
+    return function(array, item, idx) {
+      var i = 0, length = getLength(array);
+      if (typeof idx == 'number') {
+        if (dir > 0) {
+            i = idx >= 0 ? idx : Math.max(idx + length, i);
+        } else {
+            length = idx >= 0 ? Math.min(idx + 1, length) : idx + length + 1;
+        }
+      } else if (sortedIndex && idx && length) {
+        idx = sortedIndex(array, item);
+        return array[idx] === item ? idx : -1;
+      }
+      if (item !== item) {
+        idx = predicateFind(slice.call(array, i, length), _.isNaN);
+        return idx >= 0 ? idx + i : -1;
+      }
+      for (idx = dir > 0 ? i : length - 1; idx >= 0 && idx < length; idx += dir) {
+        if (array[idx] === item) return idx;
+      }
+      return -1;
+    };
+  }
+
+  // Return the position of the first occurrence of an item in an array,
+  // or -1 if the item is not included in the array.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
+  _.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
+
   // Generate an integer Array containing an arithmetic progression. A port of
   // the native Python `range()` function. See
   // [the Python documentation](http://docs.python.org/library/functions.html#range).
   _.range = function(start, stop, step) {
-    if (arguments.length <= 1) {
+    if (stop == null) {
       stop = start || 0;
       start = 0;
     }
@@ -17236,6 +17243,15 @@ return jQuery;
   // Fill in a given object with default properties.
   _.defaults = createAssigner(_.allKeys, true);
 
+  // Creates an object that inherits from the given prototype object.
+  // If additional properties are provided then they will be added to the
+  // created object.
+  _.create = function(prototype, props) {
+    var result = baseCreate(prototype);
+    if (props) _.extendOwn(result, props);
+    return result;
+  };
+
   // Create a (shallow-cloned) duplicate of an object.
   _.clone = function(obj) {
     if (!_.isObject(obj)) return obj;
@@ -17313,7 +17329,7 @@ return jQuery;
     }
     // Assume equality for cyclic structures. The algorithm for detecting cyclic
     // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-    
+
     // Initializing stack of traversed objects.
     // It's done here since we only need them for objects and arrays comparison.
     aStack = aStack || [];
@@ -17464,11 +17480,7 @@ return jQuery;
 
   _.noop = function(){};
 
-  _.property = function(key) {
-    return function(obj) {
-      return obj == null ? void 0 : obj[key];
-    };
-  };
+  _.property = property;
 
   // Generates a function for a given object that returns a given property.
   _.propertyOf = function(obj) {
@@ -17477,7 +17489,7 @@ return jQuery;
     };
   };
 
-  // Returns a predicate for checking whether an object has a given set of 
+  // Returns a predicate for checking whether an object has a given set of
   // `key:value` pairs.
   _.matcher = _.matches = function(attrs) {
     attrs = _.extendOwn({}, attrs);
@@ -17704,7 +17716,7 @@ return jQuery;
   // Provide unwrapping proxy for some methods used in engine operations
   // such as arithmetic and JSON stringification.
   _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
-  
+
   _.prototype.toString = function() {
     return '' + this._wrapped;
   };
@@ -17838,7 +17850,7 @@ module.exports = Backbone.Router.extend({
 
 });
 
-},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":15,"../views/taskList":19,"../views/user":20,"backbone":9,"jquery":10}],13:[function(require,module,exports){
+},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":16,"../views/taskList":19,"../views/user":21,"backbone":9,"jquery":10}],13:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery');
 
@@ -17863,50 +17875,6 @@ module.exports = Backbone.View.extend({
 });
 
 },{"backbone":9,"jquery":10}],14:[function(require,module,exports){
-var Backbone = require('backbone'),
-	$ = require('jquery')
-	Backbone.$ = $,
-	Marionette = require('backbone.marionette'),
-	_ = require('underscore');
-
-module.exports = Marionette.ItemView.extend({
-
-	template: _.template('<div class="login"><div>No tienes tareas previas</div><span class="btn">Crear nueva</span></div>'),
-
-	events: {
-		'click .btn' : 'open',
-	},
-
-	open: function(){
-		var urlTasks = Backbone.app.url+'track/tarea/add/';
-		chrome.tabs.create({ 'url': urlTasks });
-	},
-
-});
-
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],15:[function(require,module,exports){
-var Backbone = require('backbone'),
-  $ = require('jquery')
-  Backbone.$ = $;
-var Marionette = require('backbone.marionette'),
-  OldTaskItem = require('../views/oldtask'),
-  OldTaskEmpty = require('../views/oldTaskEmpty');
-
-module.exports = Marionette.CollectionView.extend({
-
-  el : $('#last'),
-
-  childView : OldTaskItem,
-
-  emptyView : OldTaskEmpty,
-
-  onBeforeRender : function(){
-    this.$el.empty();
-  },
-
-});
-
-},{"../views/oldTaskEmpty":14,"../views/oldtask":16,"backbone":9,"backbone.marionette":5,"jquery":10}],16:[function(require,module,exports){
 var Backbone = require('backbone'),
   $ = require('jquery')
   Backbone.$ = $;
@@ -17944,12 +17912,57 @@ module.exports = Marionette.ItemView.extend({
   },
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],17:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],15:[function(require,module,exports){
+var Backbone = require('backbone'),
+	$ = require('jquery')
+	Backbone.$ = $,
+	Marionette = require('backbone.marionette'),
+	_ = require('underscore');
+
+module.exports = Marionette.ItemView.extend({
+
+	template: _.template('<div class="login"><div>No tienes tareas previas</div><span class="btn">Crear nueva</span></div>'),
+
+	events: {
+		'click .btn' : 'open',
+	},
+
+	open: function(){
+		var urlTasks = Backbone.app.url+'track/tarea/add/';
+		chrome.tabs.create({ 'url': urlTasks });
+	},
+
+});
+
+},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],16:[function(require,module,exports){
+var Backbone = require('backbone'),
+  $ = require('jquery')
+  Backbone.$ = $;
+var Marionette = require('backbone.marionette'),
+  OldTaskItem = require('../views/oldTask'),
+  OldTaskEmpty = require('../views/oldTaskEmpty');
+
+module.exports = Marionette.CollectionView.extend({
+
+  el : $('#last'),
+
+  childView : OldTaskItem,
+
+  emptyView : OldTaskEmpty,
+
+  onBeforeRender : function(){
+    this.$el.empty();
+  },
+
+});
+
+},{"../views/oldTask":14,"../views/oldTaskEmpty":15,"backbone":9,"backbone.marionette":5,"jquery":10}],17:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $;
 var	Marionette = require('backbone.marionette'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	Timer = require('../views/timer');
 
 module.exports = Marionette.ItemView.extend({
 
@@ -17957,7 +17970,7 @@ module.exports = Marionette.ItemView.extend({
 
 	className: 'task',
 
-	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
+	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause"><label></label> Pausa</span><span class="finish">Terminar</span></div>'),
 
 	events: {
 		'click .pause' : 'pause',
@@ -17986,9 +17999,19 @@ module.exports = Marionette.ItemView.extend({
 		req.send(null);
 	},
 
+	onRender : function(){
+		this.timer = new Timer({ duration : 3600 });
+		this.trigger(this.viewTimer());
+	},
+
+	viewTimer : function(){
+		this.$el.find('.pause label').html(this.timer.minTime+':'+this.timer.secTime);
+		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
+	}
+
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],18:[function(require,module,exports){
+},{"../views/timer":20,"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],18:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $,
@@ -18033,6 +18056,51 @@ module.exports = Marionette.CollectionView.extend({
 });
 
 },{"../views/task":17,"../views/taskEmpty":18,"backbone":9,"backbone.marionette":5,"jquery":10}],20:[function(require,module,exports){
+var Backbone = require('backbone'),
+		$ = require('jquery');
+
+module.exports = Backbone.View.extend({
+
+	initialize : function(obj) {
+		if( typeof obj == 'object' ){
+			if( obj.duration > 0 ){
+				this.startTime = 0;
+				this.endTime = obj.duration;
+				this.hrTime = 0;
+				this.minTime = 0;
+				this.secTime = 0;
+				this.timer = setInterval(function(){this.start()}.bind(this),1000);
+			}
+		}
+	},
+
+	start : function(){
+		if( this.startTime < this.endTime ){
+			diff = this.endTime - this.startTime;
+			min = Math.floor(diff/60);
+			sec = diff - (min*60);
+			if( min < 10 ){
+				this.minTime = "0" + min;
+			}else{
+				this.minTime = min;
+			}
+			if( sec < 10 ){
+				this.secTime = "0" + sec;
+			}else{
+				this.secTime = sec;
+			}
+			this.endTime -= 1;
+		}
+	},
+
+	stop : function(){
+		clearTimeout(this.Timer);
+		this._startTime = this.endTime = this.minTime = this.secTime = undefined;
+	},
+
+});
+
+},{"backbone":9,"jquery":10}],21:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery');
 

@@ -2,7 +2,8 @@ var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $;
 var	Marionette = require('backbone.marionette'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	Timer = require('../views/timer');
 
 module.exports = Marionette.ItemView.extend({
 
@@ -10,7 +11,7 @@ module.exports = Marionette.ItemView.extend({
 
 	className: 'task',
 
-	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
+	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause"><label></label> Pausa</span><span class="finish">Terminar</span></div>'),
 
 	events: {
 		'click .pause' : 'pause',
@@ -38,5 +39,15 @@ module.exports = Marionette.ItemView.extend({
 		}
 		req.send(null);
 	},
+
+	onRender : function(){
+		this.timer = new Timer({ duration : 3600 });
+		this.trigger(this.viewTimer());
+	},
+
+	viewTimer : function(){
+		this.$el.find('.pause label').html(this.timer.minTime+':'+this.timer.secTime);
+		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
+	}
 
 });

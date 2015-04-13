@@ -2,7 +2,7 @@ var Backbone = require('backbone'),
   $ = require('jquery')
   Backbone.$ = $;
 var Marionette = require('backbone.marionette'),
-  OldTaskItem = require('../views/oldtask'),
+  OldTaskItem = require('../views/oldTask'),
   OldTaskEmpty = require('../views/oldTaskEmpty');
 
 module.exports = Marionette.CollectionView.extend({
