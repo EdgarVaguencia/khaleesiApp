@@ -33,6 +33,7 @@ module.exports = Marionette.ItemView.extend({
 		req.open('GET',urlSend,true);
 		req.onload = function(){
 			if ( req.readyState === 4 && req.status === 200 ){
+				self.timer.stop();
 				self.destroy();
 				Backbone.app.resource();
 			}
@@ -42,8 +43,8 @@ module.exports = Marionette.ItemView.extend({
 
 	onRender : function(){
 		var elapsedTime = 3600;
-		if( _.find(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') })){
-			console.log('Ya hay uno');
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
 			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
 			elapsedTime = prevElapsedTime.elapsed;
 		}
@@ -56,23 +57,5 @@ module.exports = Marionette.ItemView.extend({
 		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
 	},
 
-	saveTime : function(){
-		var self = this;
-				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
-		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
-			_.each(tasklist,function(k){
-				if( k.cid == self.model.get('pkid')){
-					k.elapsed = self.timer.endTime;
-				}
-			});
-		}else{
-			task = {
-				cid : this.model.get('pkid'),
-				elapsed : this.timer.endTime,
-			}
-			tasklist.push(task);
-		}
-		localStorage.khaleesiTime = JSON.stringify(tasklist);
-	},
 
 });

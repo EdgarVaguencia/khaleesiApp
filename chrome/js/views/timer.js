@@ -1,24 +1,34 @@
 var Backbone = require('backbone'),
-		$ = require('jquery');
+		$ = require('jquery'),
+		Ntf = require('../views/notification'),
+		Task = require('../views/task'),
+		_ = require('underscore');
 
 module.exports = Backbone.View.extend({
 
 	initialize : function(obj) {
+		this.startTime = this.endTime = this.hrTime = this.minTime = this.secTime = 0;
 		if( typeof obj == 'object' ){
 			if( obj.duration > 0 && obj.cid ){
-				this.startTime = 0;
 				this.endTime = obj.duration;
-				this.hrTime = 0;
-				this.minTime = 0;
-				this.secTime = 0;
-				this.timer = setInterval(function(){this.start()}.bind(this),1000);
 				this.mIde = obj.cid;
+				this.timer = setInterval(function(){this.start()}.bind(this),1000);
+			}else{
+				if( obj.cid ){
+					this.mIde = obj.cid;
+				}
+				this.stop();
 			}
 		}
 	},
 
 	start : function(){
-		if( this.startTime < this.endTime ){
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		var item = _.findWhere(tasklist,{ cid : this.mIde });
+		if( item !== undefined && item.elapsed == 0 ){
+			this.stop();
+		}
+		if( this.startTime <= this.endTime ){
 			diff = this.endTime - this.startTime;
 			min = Math.floor(diff/60);
 			sec = diff - (min*60);
@@ -34,21 +44,30 @@ module.exports = Backbone.View.extend({
 			}
 			this.endTime -= 1;
 			this.saveTime();
+			if( this.sec == 30 ){
+				var ntf = new Ntf({ txt: 'Ánimo, solo te restan 30sec para finalizar con esta actividad y poder tomar un descanzo' });
+			}
 		}
 	},
 
 	stop : function(){
-		clearTimeout(this.Timer);
-		this._startTime = this.endTime = this.minTime = this.secTime = undefined;
+		if( this.timer ){
+			clearInterval(this.timer);
+		}
+		this.startTime = this.endTime = this.minTime = this.secTime = 0;
+		this.saveTime();
+		this.mIde = undefined;
 	},
 
 	saveTime : function(){
 		var self = this;
-				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
 		if( _.find(tasklist,{ cid : self.mIde })){
 			_.each(tasklist,function(k){
 				if( k.cid == self.mIde ){
-					k.elapsed = self.endTime;
+					if( k.elapsed !== 0 ){
+						k.elapsed = self.endTime;
+					}
 				}
 			});
 		}else{
@@ -59,6 +78,21 @@ module.exports = Backbone.View.extend({
 			tasklist.push(task);
 		}
 		localStorage.khaleesiTime = JSON.stringify(tasklist);
+		this.removeSave();
+	},
+
+	removeSave : function(){
+		var self = this;
+		if( localStorage.khaleesiTime.length > 0 ){
+			tasklist = JSON.parse(localStorage.khaleesiTime);
+			_.each(tasklist,function(i){
+				console.log(i);
+				if( i.elapsed <= 0 ){
+					tasklist.pop(i);
+				}
+			});
+			localStorage.khaleesiTime = JSON.stringify(tasklist);
+		}
 	},
 
 });

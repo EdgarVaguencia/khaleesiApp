@@ -17847,7 +17847,7 @@ module.exports = Backbone.Router.extend({
 
 });
 
-},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":16,"../views/taskList":19,"../views/timer":20,"../views/user":21,"backbone":9,"jquery":10,"underscore":11}],13:[function(require,module,exports){
+},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":17,"../views/taskList":20,"../views/timer":21,"../views/user":22,"backbone":9,"jquery":10,"underscore":11}],13:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery');
 
@@ -17872,6 +17872,42 @@ module.exports = Backbone.View.extend({
 });
 
 },{"backbone":9,"jquery":10}],14:[function(require,module,exports){
+var Backbone = require('backbone'),
+		$ = require('jquery');
+
+module.exports = Backbone.View.extend({
+
+	el: $('body'),
+
+	initialize : function(obj){
+		if( obj.txt ){
+			this.options.message = obj.txt;
+		}
+		if( obj.title ){
+			this.options.title = obj.title;
+		}
+		this.view();
+	},
+
+	options : {
+		type: "basic",
+		title: "Khaleesi",
+		message : '',
+		iconUrl : '../img/keep.png',
+	},
+
+	view : function(){
+		this.clear();
+		chrome.notifications.create(this.cid,this.options,function(id){ console.log(chrome.runtime.lastError); });
+	},
+
+	clear : function(){
+		chrome.notifications.getAll(function(ide){ _.each(ide,function(i,k){ chrome.notifications.clear(k,function(id){ console.log(chrome.runtime.lastError) }) }) });
+	},
+
+});
+
+},{"backbone":9,"jquery":10}],15:[function(require,module,exports){
 var Backbone = require('backbone'),
   $ = require('jquery')
   Backbone.$ = $;
@@ -17909,7 +17945,7 @@ module.exports = Marionette.ItemView.extend({
   },
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],15:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],16:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $,
@@ -17931,7 +17967,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],16:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],17:[function(require,module,exports){
 var Backbone = require('backbone'),
   $ = require('jquery')
   Backbone.$ = $;
@@ -17953,7 +17989,7 @@ module.exports = Marionette.CollectionView.extend({
 
 });
 
-},{"../views/oldTask":14,"../views/oldTaskEmpty":15,"backbone":9,"backbone.marionette":5,"jquery":10}],17:[function(require,module,exports){
+},{"../views/oldTask":15,"../views/oldTaskEmpty":16,"backbone":9,"backbone.marionette":5,"jquery":10}],18:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $;
@@ -17989,6 +18025,7 @@ module.exports = Marionette.ItemView.extend({
 		req.open('GET',urlSend,true);
 		req.onload = function(){
 			if ( req.readyState === 4 && req.status === 200 ){
+				self.timer.stop();
 				self.destroy();
 				Backbone.app.resource();
 			}
@@ -17998,8 +18035,8 @@ module.exports = Marionette.ItemView.extend({
 
 	onRender : function(){
 		var elapsedTime = 3600;
-		if( _.find(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') })){
-			console.log('Ya hay uno');
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
 			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
 			elapsedTime = prevElapsedTime.elapsed;
 		}
@@ -18012,28 +18049,10 @@ module.exports = Marionette.ItemView.extend({
 		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
 	},
 
-	saveTime : function(){
-		var self = this;
-				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
-		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
-			_.each(tasklist,function(k){
-				if( k.cid == self.model.get('pkid')){
-					k.elapsed = self.timer.endTime;
-				}
-			});
-		}else{
-			task = {
-				cid : this.model.get('pkid'),
-				elapsed : this.timer.endTime,
-			}
-			tasklist.push(task);
-		}
-		localStorage.khaleesiTime = JSON.stringify(tasklist);
-	},
 
 });
 
-},{"../views/timer":20,"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],18:[function(require,module,exports){
+},{"../views/timer":21,"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],19:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $,
@@ -18055,7 +18074,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],19:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],20:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ =$;
@@ -18077,28 +18096,38 @@ module.exports = Marionette.CollectionView.extend({
 
 });
 
-},{"../views/task":17,"../views/taskEmpty":18,"backbone":9,"backbone.marionette":5,"jquery":10}],20:[function(require,module,exports){
+},{"../views/task":18,"../views/taskEmpty":19,"backbone":9,"backbone.marionette":5,"jquery":10}],21:[function(require,module,exports){
 var Backbone = require('backbone'),
-		$ = require('jquery');
+		$ = require('jquery'),
+		Ntf = require('../views/notification'),
+		Task = require('../views/task'),
+		_ = require('underscore');
 
 module.exports = Backbone.View.extend({
 
 	initialize : function(obj) {
+		this.startTime = this.endTime = this.hrTime = this.minTime = this.secTime = 0;
 		if( typeof obj == 'object' ){
 			if( obj.duration > 0 && obj.cid ){
-				this.startTime = 0;
 				this.endTime = obj.duration;
-				this.hrTime = 0;
-				this.minTime = 0;
-				this.secTime = 0;
-				this.timer = setInterval(function(){this.start()}.bind(this),1000);
 				this.mIde = obj.cid;
+				this.timer = setInterval(function(){this.start()}.bind(this),1000);
+			}else{
+				if( obj.cid ){
+					this.mIde = obj.cid;
+				}
+				this.stop();
 			}
 		}
 	},
 
 	start : function(){
-		if( this.startTime < this.endTime ){
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		var item = _.findWhere(tasklist,{ cid : this.mIde });
+		if( item !== undefined && item.elapsed == 0 ){
+			this.stop();
+		}
+		if( this.startTime <= this.endTime ){
 			diff = this.endTime - this.startTime;
 			min = Math.floor(diff/60);
 			sec = diff - (min*60);
@@ -18114,21 +18143,30 @@ module.exports = Backbone.View.extend({
 			}
 			this.endTime -= 1;
 			this.saveTime();
+			if( this.sec == 30 ){
+				var ntf = new Ntf({ txt: 'Ánimo, solo te restan 30sec para finalizar con esta actividad y poder tomar un descanzo' });
+			}
 		}
 	},
 
 	stop : function(){
-		clearTimeout(this.Timer);
-		this._startTime = this.endTime = this.minTime = this.secTime = undefined;
+		if( this.timer ){
+			clearInterval(this.timer);
+		}
+		this.startTime = this.endTime = this.minTime = this.secTime = 0;
+		this.saveTime();
+		this.mIde = undefined;
 	},
 
 	saveTime : function(){
 		var self = this;
-				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
 		if( _.find(tasklist,{ cid : self.mIde })){
 			_.each(tasklist,function(k){
 				if( k.cid == self.mIde ){
-					k.elapsed = self.endTime;
+					if( k.elapsed !== 0 ){
+						k.elapsed = self.endTime;
+					}
 				}
 			});
 		}else{
@@ -18139,11 +18177,26 @@ module.exports = Backbone.View.extend({
 			tasklist.push(task);
 		}
 		localStorage.khaleesiTime = JSON.stringify(tasklist);
+		this.removeSave();
+	},
+
+	removeSave : function(){
+		var self = this;
+		if( localStorage.khaleesiTime.length > 0 ){
+			tasklist = JSON.parse(localStorage.khaleesiTime);
+			_.each(tasklist,function(i){
+				console.log(i);
+				if( i.elapsed <= 0 ){
+					tasklist.pop(i);
+				}
+			});
+			localStorage.khaleesiTime = JSON.stringify(tasklist);
+		}
 	},
 
 });
 
-},{"backbone":9,"jquery":10}],21:[function(require,module,exports){
+},{"../views/notification":14,"../views/task":18,"backbone":9,"jquery":10,"underscore":11}],22:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery');
 
