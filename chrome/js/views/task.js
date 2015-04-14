@@ -11,7 +11,7 @@ module.exports = Marionette.ItemView.extend({
 
 	className: 'task',
 
-	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause"><label></label> Pausa</span><span class="finish">Terminar</span></div>'),
+	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="timer"></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
 
 	events: {
 		'click .pause' : 'pause',
@@ -41,13 +41,38 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	onRender : function(){
-		this.timer = new Timer({ duration : 3600 });
+		var elapsedTime = 3600;
+		if( _.find(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') })){
+			console.log('Ya hay uno');
+			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
+			elapsedTime = prevElapsedTime.elapsed;
+		}
+		this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
 		this.trigger(this.viewTimer());
 	},
 
 	viewTimer : function(){
-		this.$el.find('.pause label').html(this.timer.minTime+':'+this.timer.secTime);
+		this.$el.find('.timer').html(this.timer.minTime+':'+this.timer.secTime);
 		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
-	}
+	},
+
+	saveTime : function(){
+		var self = this;
+				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
+			_.each(tasklist,function(k){
+				if( k.cid == self.model.get('pkid')){
+					k.elapsed = self.timer.endTime;
+				}
+			});
+		}else{
+			task = {
+				cid : this.model.get('pkid'),
+				elapsed : this.timer.endTime,
+			}
+			tasklist.push(task);
+		}
+		localStorage.khaleesiTime = JSON.stringify(tasklist);
+	},
 
 });

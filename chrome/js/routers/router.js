@@ -7,12 +7,14 @@ var Backbone = require('backbone'),
 	//ClockView = require('../views/clock'),
 	TaskCollection = require('../collections/task'),
 	UserModel = require('../models/user'),
-	TaskModel = require('../models/task');
+	TaskModel = require('../models/task'),
+	_ = require('underscore'),
+	Timer = require('../views/timer');
 
 module.exports = Backbone.Router.extend({
 
 	routes :{
-		// '_generated_background_page.html' : 'timer',
+		'_generated_background_page.html' : 'timer',
 		'index.html' : 'resource',
 	},
 
@@ -20,8 +22,10 @@ module.exports = Backbone.Router.extend({
 		if( typeof obj === 'object' ){
 			this.url = obj.url;
 		}
+		if( !localStorage.khaleesiTime ){
+			localStorage['khaleesiTime'] = [];
+		}
 		Backbone.history.start({ pushState : true });
-		//this.now = new Date;
 	},
 
 	resource : function(){
@@ -85,19 +89,12 @@ module.exports = Backbone.Router.extend({
 	},
 
 	timer: function(time){
-		//this.clockView = new ClockView();
-		if( time != '' ){
-			time = 1000;
+		if( localStorage.khaleesiTime.length > 0 ){
+			tasklist = JSON.parse(localStorage.khaleesiTime);
+			_.each(tasklist,function(i){
+				var timer = new Timer({ duration : i.elapsed, cid : i.cid });
+			});
 		}
-
-		var self = this;
-		var clockTime = setInterval(function(){
-			var clock = new Date;
-			if( clock.getHours() === 17 && clock.getMinutes() === 00 ){
-				self.notification();
-				clearInterval(clockTime);
-			}
-		},time);
 	},
 
 	notification: function(){

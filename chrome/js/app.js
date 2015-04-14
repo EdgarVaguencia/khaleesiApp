@@ -17745,12 +17745,14 @@ var Backbone = require('backbone'),
 	//ClockView = require('../views/clock'),
 	TaskCollection = require('../collections/task'),
 	UserModel = require('../models/user'),
-	TaskModel = require('../models/task');
+	TaskModel = require('../models/task'),
+	_ = require('underscore'),
+	Timer = require('../views/timer');
 
 module.exports = Backbone.Router.extend({
 
 	routes :{
-		// '_generated_background_page.html' : 'timer',
+		'_generated_background_page.html' : 'timer',
 		'index.html' : 'resource',
 	},
 
@@ -17758,8 +17760,10 @@ module.exports = Backbone.Router.extend({
 		if( typeof obj === 'object' ){
 			this.url = obj.url;
 		}
+		if( !localStorage.khaleesiTime ){
+			localStorage['khaleesiTime'] = [];
+		}
 		Backbone.history.start({ pushState : true });
-		//this.now = new Date;
 	},
 
 	resource : function(){
@@ -17823,19 +17827,12 @@ module.exports = Backbone.Router.extend({
 	},
 
 	timer: function(time){
-		//this.clockView = new ClockView();
-		if( time != '' ){
-			time = 1000;
+		if( localStorage.khaleesiTime.length > 0 ){
+			tasklist = JSON.parse(localStorage.khaleesiTime);
+			_.each(tasklist,function(i){
+				var timer = new Timer({ duration : i.elapsed, cid : i.cid });
+			});
 		}
-
-		var self = this;
-		var clockTime = setInterval(function(){
-			var clock = new Date;
-			if( clock.getHours() === 17 && clock.getMinutes() === 00 ){
-				self.notification();
-				clearInterval(clockTime);
-			}
-		},time);
 	},
 
 	notification: function(){
@@ -17850,7 +17847,7 @@ module.exports = Backbone.Router.extend({
 
 });
 
-},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":16,"../views/taskList":19,"../views/user":21,"backbone":9,"jquery":10}],13:[function(require,module,exports){
+},{"../collections/task":1,"../models/task":3,"../models/user":4,"../views/login":13,"../views/oldTaskList":16,"../views/taskList":19,"../views/timer":20,"../views/user":21,"backbone":9,"jquery":10,"underscore":11}],13:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery');
 
@@ -17970,7 +17967,7 @@ module.exports = Marionette.ItemView.extend({
 
 	className: 'task',
 
-	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="action"><span class="pause"><label></label> Pausa</span><span class="finish">Terminar</span></div>'),
+	template: _.template('<div class="detail"><span class="title"><%= name %></span><span class="subtitle"><%= project %>, <%= module %></span></div><div class="timer"></div><div class="action"><span class="pause">Pausa</span><span class="finish">Terminar</span></div>'),
 
 	events: {
 		'click .pause' : 'pause',
@@ -18000,14 +17997,39 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	onRender : function(){
-		this.timer = new Timer({ duration : 3600 });
+		var elapsedTime = 3600;
+		if( _.find(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') })){
+			console.log('Ya hay uno');
+			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
+			elapsedTime = prevElapsedTime.elapsed;
+		}
+		this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
 		this.trigger(this.viewTimer());
 	},
 
 	viewTimer : function(){
-		this.$el.find('.pause label').html(this.timer.minTime+':'+this.timer.secTime);
+		this.$el.find('.timer').html(this.timer.minTime+':'+this.timer.secTime);
 		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
-	}
+	},
+
+	saveTime : function(){
+		var self = this;
+				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
+			_.each(tasklist,function(k){
+				if( k.cid == self.model.get('pkid')){
+					k.elapsed = self.timer.endTime;
+				}
+			});
+		}else{
+			task = {
+				cid : this.model.get('pkid'),
+				elapsed : this.timer.endTime,
+			}
+			tasklist.push(task);
+		}
+		localStorage.khaleesiTime = JSON.stringify(tasklist);
+	},
 
 });
 
@@ -18063,13 +18085,14 @@ module.exports = Backbone.View.extend({
 
 	initialize : function(obj) {
 		if( typeof obj == 'object' ){
-			if( obj.duration > 0 ){
+			if( obj.duration > 0 && obj.cid ){
 				this.startTime = 0;
 				this.endTime = obj.duration;
 				this.hrTime = 0;
 				this.minTime = 0;
 				this.secTime = 0;
 				this.timer = setInterval(function(){this.start()}.bind(this),1000);
+				this.mIde = obj.cid;
 			}
 		}
 	},
@@ -18090,12 +18113,32 @@ module.exports = Backbone.View.extend({
 				this.secTime = sec;
 			}
 			this.endTime -= 1;
+			this.saveTime();
 		}
 	},
 
 	stop : function(){
 		clearTimeout(this.Timer);
 		this._startTime = this.endTime = this.minTime = this.secTime = undefined;
+	},
+
+	saveTime : function(){
+		var self = this;
+				localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : self.mIde })){
+			_.each(tasklist,function(k){
+				if( k.cid == self.mIde ){
+					k.elapsed = self.endTime;
+				}
+			});
+		}else{
+			task = {
+				cid : self.mIde,
+				elapsed : self.endTime,
+			}
+			tasklist.push(task);
+		}
+		localStorage.khaleesiTime = JSON.stringify(tasklist);
 	},
 
 });

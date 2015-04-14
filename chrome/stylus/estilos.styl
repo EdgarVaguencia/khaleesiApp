@@ -9,7 +9,7 @@ body
 	font-family 'Noto Sans', sans-serif
 	font-size 14px
 	margin 0
-	min-width 300px
+	min-width 350px
 	padding 0
 
 header
@@ -56,19 +56,31 @@ header
 		{shadow}
 		background #FFFFFF
 		border-radius 3px
+		display flex
+		flex-flow row wrap
 		margin-bottom 8px
 		position relative
 			span
 				vertical-align middle
 		.detail
-			padding 16px
+			flex 1 50%
+			padding 16px 8px 16px 16px
 			.title
 				display block
 			.subtitle
 				color rgba(0,0,0,.54)
 				font-size 12px
+		.timer
+			flex 2 20%
+			font-size 30px
+			line-height 70px
+			order 1
+			text-align center
+			padding 0 16px 0 8px
 		.action
 			border-top 1px solid rgba(0,0,0,.12)
+			flex 1 auto
+			order 2
 			padding 0 16px
 			span
 				cursor pointer
