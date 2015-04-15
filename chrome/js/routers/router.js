@@ -89,22 +89,16 @@ module.exports = Backbone.Router.extend({
 	},
 
 	timer: function(time){
+		var self = this;
+		this.timers = [];
 		if( localStorage.khaleesiTime.length > 0 ){
 			tasklist = JSON.parse(localStorage.khaleesiTime);
 			_.each(tasklist,function(i){
-				var timer = new Timer({ duration : i.elapsed, cid : i.cid });
+				if( !self.timer[i.cid] ){
+					self.timer[i.cid] = new Timer({ duration : i.elapsed, cid : i.cid });
+				}
 			});
 		}
 	},
-
-	notification: function(){
-		var opt = {
-			type: "basic",
-			title: "Khaleesi time",
-			message: "Es hora de partir y aun tienes tareas iniciadas",
-			iconUrl: "../img/keep.png"
-		}
-		chrome.notifications.create('notification_1',opt,function(id){ console.log(chrome.runtime.lastError); });
-	}
 
 });

@@ -27,10 +27,23 @@ module.exports = Marionette.ItemView.extend({
     req.open('GET',urlSend,true);
     req.onload = function(){
       if ( req.readyState === 4 && req.status === 200 ){
+        self.addTimer();
         self.destroy();
         Backbone.app.resource();
       }
     }
     req.send(null);
   },
+
+  addTimer : function(){
+    localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+    var task = {
+      cid : this.model.get('pkid'),
+      elapsed : 3600,
+    }
+    tasklist.push(task);
+    localStorage.khaleesiTime = JSON.stringify(tasklist);
+    Backbone.app.timer();
+  },
+
 });

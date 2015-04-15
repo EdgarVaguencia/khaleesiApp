@@ -19,11 +19,15 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	pause: function(){
-		this.send(3);
+		this.timer.statusTask(this.model.get('pkid'),3);
+		this.destroy();
+		//this.send(3);
 	},
 
 	finish: function(){
-		this.send(4);
+		this.timer.statusTask(this.model.get('pkid'),4);
+		this.destroy();
+		//this.send(4);
 	},
 
 	send: function(idType){
@@ -47,9 +51,11 @@ module.exports = Marionette.ItemView.extend({
 		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
 			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
 			elapsedTime = prevElapsedTime.elapsed;
+			this.timer = Backbone.app.timer[this.model.get('pkid')];
+			this.trigger(this.viewTimer());
 		}
-		this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
-		this.trigger(this.viewTimer());
+		//this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
+		//this.trigger(this.viewTimer());
 	},
 
 	viewTimer : function(){
