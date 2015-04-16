@@ -17752,7 +17752,7 @@ var Backbone = require('backbone'),
 module.exports = Backbone.Router.extend({
 
 	routes :{
-		'_generated_background_page.html' : 'timer',
+		'_generated_background_page.html' : 'background',
 		'index.html' : 'resource',
 	},
 
@@ -17826,24 +17826,23 @@ module.exports = Backbone.Router.extend({
 		this.oldTaskView.render();
 	},
 
+	background : function(){
+		window.backboneApp = Backbone;
+		this.timer();
+	},
+
 	timer: function(time){
+		var self = this;
+		this.timers = [];
 		if( localStorage.khaleesiTime.length > 0 ){
 			tasklist = JSON.parse(localStorage.khaleesiTime);
 			_.each(tasklist,function(i){
-				var timer = new Timer({ duration : i.elapsed, cid : i.cid });
+				if( !self.timer[i.cid] ){
+					self.timers[i.cid] = new Timer({ duration : i.elapsed, cid : i.cid });
+				}
 			});
 		}
 	},
-
-	notification: function(){
-		var opt = {
-			type: "basic",
-			title: "Khaleesi time",
-			message: "Es hora de partir y aun tienes tareas iniciadas",
-			iconUrl: "../img/keep.png"
-		}
-		chrome.notifications.create('notification_1',opt,function(id){ console.log(chrome.runtime.lastError); });
-	}
 
 });
 
@@ -17937,12 +17936,26 @@ module.exports = Marionette.ItemView.extend({
     req.open('GET',urlSend,true);
     req.onload = function(){
       if ( req.readyState === 4 && req.status === 200 ){
+        self.addTimer();
         self.destroy();
         Backbone.app.resource();
       }
     }
     req.send(null);
   },
+
+  addTimer : function(){
+    localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+    var task = {
+      cid : this.model.get('pkid'),
+      elapsed : 3600,
+    }
+    tasklist.push(task);
+    localStorage.khaleesiTime = JSON.stringify(tasklist);
+    pageBack = chrome.extension.getBackgroundPage();
+    pageBack.backboneApp.app.timer();
+  },
+
 });
 
 },{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],16:[function(require,module,exports){
@@ -18011,11 +18024,15 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	pause: function(){
-		this.send(3);
+		this.timer.statusTask(this.model.get('pkid'),3);
+		this.destroy();
+		//this.send(3);
 	},
 
 	finish: function(){
-		this.send(4);
+		this.timer.statusTask(this.model.get('pkid'),4);
+		this.destroy();
+		//this.send(4);
 	},
 
 	send: function(idType){
@@ -18039,6 +18056,9 @@ module.exports = Marionette.ItemView.extend({
 		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
 			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
 			elapsedTime = prevElapsedTime.elapsed;
+			//this.timer = Backbone.app.timer[this.model.get('pkid')];
+			//console.log(this.timer);
+			//this.trigger(this.viewTimer());
 		}
 		this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
 		this.trigger(this.viewTimer());
@@ -18122,11 +18142,6 @@ module.exports = Backbone.View.extend({
 	},
 
 	start : function(){
-		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
-		var item = _.findWhere(tasklist,{ cid : this.mIde });
-		if( item !== undefined && item.elapsed == 0 ){
-			this.stop();
-		}
 		if( this.startTime <= this.endTime ){
 			diff = this.endTime - this.startTime;
 			min = Math.floor(diff/60);
@@ -18141,8 +18156,13 @@ module.exports = Backbone.View.extend({
 			}else{
 				this.secTime = sec;
 			}
-			this.endTime -= 1;
-			this.saveTime();
+			if( diff == 0 ){
+				statusTask(i.cid,3);
+				//this.stop();
+			}else{
+				this.endTime -= 1;
+				this.saveTime();
+			}
 			if( this.sec == 30 ){
 				var ntf = new Ntf({ txt: 'Ánimo, solo te restan 30sec para finalizar con esta actividad y poder tomar un descanzo' });
 			}
@@ -18164,7 +18184,7 @@ module.exports = Backbone.View.extend({
 		if( _.find(tasklist,{ cid : self.mIde })){
 			_.each(tasklist,function(k){
 				if( k.cid == self.mIde ){
-					if( k.elapsed !== 0 ){
+					if( k.endTime !== 0 ){
 						k.elapsed = self.endTime;
 					}
 				}
@@ -18185,14 +18205,30 @@ module.exports = Backbone.View.extend({
 		if( localStorage.khaleesiTime.length > 0 ){
 			tasklist = JSON.parse(localStorage.khaleesiTime);
 			_.each(tasklist,function(i){
-				console.log(i);
-				if( i.elapsed <= 0 ){
+				if( i && i.elapsed <= 0 ){
 					tasklist.pop(i);
 				}
 			});
 			localStorage.khaleesiTime = JSON.stringify(tasklist);
 		}
 	},
+
+	statusTask : function(ide,type){
+		var self = this;
+		var urlSend = Backbone.app.url+'track/tarea/'+ide+'/board/'+type;
+		var req = new XMLHttpRequest();
+		req.open('GET',urlSend,true);
+		req.onload = function(){
+			if ( req.readyState === 4 && req.status === 200 ){
+				pageBack = chrome.extension.getBackgroundPage();
+				pageBack.backboneApp.app.timers[self.mIde].stop();
+				self.stop();
+				var ntf = new Ntf({ txt: 'Felicidades, mereces un descanzo' });
+				Backbone.app.resource();
+			}
+		}
+		req.send(null);
+	}
 
 });
 

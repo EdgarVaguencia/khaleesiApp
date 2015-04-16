@@ -43,7 +43,8 @@ module.exports = Marionette.ItemView.extend({
     }
     tasklist.push(task);
     localStorage.khaleesiTime = JSON.stringify(tasklist);
-    Backbone.app.timer();
+    pageBack = chrome.extension.getBackgroundPage();
+    pageBack.backboneApp.app.timer();
   },
 
 });

@@ -14,7 +14,7 @@ var Backbone = require('backbone'),
 module.exports = Backbone.Router.extend({
 
 	routes :{
-		'_generated_background_page.html' : 'timer',
+		'_generated_background_page.html' : 'background',
 		'index.html' : 'resource',
 	},
 
@@ -88,6 +88,11 @@ module.exports = Backbone.Router.extend({
 		this.oldTaskView.render();
 	},
 
+	background : function(){
+		window.backboneApp = Backbone;
+		this.timer();
+	},
+
 	timer: function(time){
 		var self = this;
 		this.timers = [];
@@ -95,7 +100,7 @@ module.exports = Backbone.Router.extend({
 			tasklist = JSON.parse(localStorage.khaleesiTime);
 			_.each(tasklist,function(i){
 				if( !self.timer[i.cid] ){
-					self.timer[i.cid] = new Timer({ duration : i.elapsed, cid : i.cid });
+					self.timers[i.cid] = new Timer({ duration : i.elapsed, cid : i.cid });
 				}
 			});
 		}

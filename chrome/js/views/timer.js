@@ -86,7 +86,7 @@ module.exports = Backbone.View.extend({
 		if( localStorage.khaleesiTime.length > 0 ){
 			tasklist = JSON.parse(localStorage.khaleesiTime);
 			_.each(tasklist,function(i){
-				if( i.elapsed <= 0 ){
+				if( i && i.elapsed <= 0 ){
 					tasklist.pop(i);
 				}
 			});
@@ -101,7 +101,9 @@ module.exports = Backbone.View.extend({
 		req.open('GET',urlSend,true);
 		req.onload = function(){
 			if ( req.readyState === 4 && req.status === 200 ){
-				this.stop();
+				pageBack = chrome.extension.getBackgroundPage();
+				pageBack.backboneApp.app.timers[self.mIde].stop();
+				self.stop();
 				var ntf = new Ntf({ txt: 'Felicidades, mereces un descanzo' });
 				Backbone.app.resource();
 			}
