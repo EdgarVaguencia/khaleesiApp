@@ -18157,7 +18157,7 @@ module.exports = Backbone.View.extend({
 				this.secTime = sec;
 			}
 			if( diff == 0 ){
-				this.statusTask(i.cid,3);
+				this.statusTask(this.mIde,3);
 				//this.stop();
 			}else{
 				this.endTime -= 1;
