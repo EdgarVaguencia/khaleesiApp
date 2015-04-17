@@ -38,7 +38,7 @@ module.exports = Backbone.View.extend({
 				this.secTime = sec;
 			}
 			if( diff == 0 ){
-				statusTask(i.cid,3);
+				this.statusTask(i.cid,3);
 				//this.stop();
 			}else{
 				this.endTime -= 1;
@@ -61,6 +61,7 @@ module.exports = Backbone.View.extend({
 
 	saveTime : function(){
 		var self = this;
+		newTask = false;
 		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
 		if( _.find(tasklist,{ cid : self.mIde })){
 			_.each(tasklist,function(k){
@@ -71,6 +72,7 @@ module.exports = Backbone.View.extend({
 				}
 			});
 		}else{
+			newTask = true;
 			task = {
 				cid : self.mIde,
 				elapsed : self.endTime,
@@ -78,6 +80,11 @@ module.exports = Backbone.View.extend({
 			tasklist.push(task);
 		}
 		localStorage.khaleesiTime = JSON.stringify(tasklist);
+		if( newTask ){
+			pageBack = chrome.extension.getBackgroundPage();
+			pageBack.backboneApp.app.timer();
+			newTask = false;
+		}
 		this.removeSave();
 	},
 
