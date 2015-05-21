@@ -1,5 +1,6 @@
 var Backbone = require('backbone'),
-	$ = require('jquery'),
+	$ = require('jquery')
+	Backbone.$ = $,
 	LoginView = require('../views/login'),
 	UserView = require('../views/user'),
 	TaskView = require('../views/taskList'),
@@ -10,12 +11,14 @@ var Backbone = require('backbone'),
 	TaskModel = require('../models/task'),
 	_ = require('underscore'),
 	Timer = require('../views/timer');
+	OptionPage = require('../views/option');
 
 module.exports = Backbone.Router.extend({
 
 	routes :{
 		'_generated_background_page.html' : 'background',
 		'index.html' : 'resource',
+		'options.html' : 'options',
 	},
 
 	initialize : function(obj){
@@ -105,5 +108,9 @@ module.exports = Backbone.Router.extend({
 			});
 		}
 	},
+
+	options : function(){
+		var optionPage = new OptionPage();
+	}
 
 });

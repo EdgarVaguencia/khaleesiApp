@@ -7,13 +7,11 @@
 		"default_popup" : "index.html"
 	},
 	"author" : "Edgar Valencia <isc.edgarvalencia@gmail.com>",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/EdgarVaguencia/khaleesiApp"
-	},
+	"homepage_url": "https://github.com/EdgarVaguencia/khaleesiApp",
 	"permissions" : [
 		"notifications",
-		"http://khaleesi.unisem.mx/"
+		"http://khaleesi.unisem.mx/",
+		"storage"
 	],
 	"icons": {
 		"16": "img/16.png",
@@ -23,5 +21,6 @@
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 	"background" : {
 		"scripts" : ["./js/app.js"]
-	}
+	},
+	"options_page" : "options.html"
 }
