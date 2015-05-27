@@ -26,7 +26,7 @@ module.exports = Backbone.Model.extend();
 
 },{"backbone":9}],4:[function(require,module,exports){
 module.exports=require(3)
-},{"/home/edgar/Documentos/ProyectosFree/khaleesi/chrome/js/models/task.js":3,"backbone":9}],5:[function(require,module,exports){
+},{"backbone":9,"e:\\Documents\\ProyectosFree\\Khaleesi\\khaleesiApp\\chrome\\js\\models\\task.js":3}],5:[function(require,module,exports){
 // MarionetteJS (Backbone.Marionette)
 // ----------------------------------
 // v2.4.1
@@ -16186,7 +16186,7 @@ return jQuery;
 }));
 
 },{}],11:[function(require,module,exports){
-//     Underscore.js 1.8.3
+//     Underscore.js 1.8.2
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
@@ -16243,7 +16243,7 @@ return jQuery;
   }
 
   // Current version.
-  _.VERSION = '1.8.3';
+  _.VERSION = '1.8.2';
 
   // Internal function that returns an efficient (for current engines) version
   // of the passed-in callback, to be repeatedly applied in other Underscore
@@ -16310,20 +16310,12 @@ return jQuery;
     return result;
   };
 
-  var property = function(key) {
-    return function(obj) {
-      return obj == null ? void 0 : obj[key];
-    };
-  };
-
   // Helper for collection methods to determine whether a collection
   // should be iterated as an array or as an object
   // Related: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength
-  // Avoids a very nasty iOS 8 JIT bug on ARM-64. #2094
   var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
-  var getLength = property('length');
   var isArrayLike = function(collection) {
-    var length = getLength(collection);
+    var length = collection && collection.length;
     return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
   };
 
@@ -16448,12 +16440,11 @@ return jQuery;
     return false;
   };
 
-  // Determine if the array or object contains a given item (using `===`).
+  // Determine if the array or object contains a given value (using `===`).
   // Aliased as `includes` and `include`.
-  _.contains = _.includes = _.include = function(obj, item, fromIndex, guard) {
+  _.contains = _.includes = _.include = function(obj, target, fromIndex) {
     if (!isArrayLike(obj)) obj = _.values(obj);
-    if (typeof fromIndex != 'number' || guard) fromIndex = 0;
-    return _.indexOf(obj, item, fromIndex) >= 0;
+    return _.indexOf(obj, target, typeof fromIndex == 'number' && fromIndex) >= 0;
   };
 
   // Invoke a method (with arguments) on every item in a collection.
@@ -16677,7 +16668,7 @@ return jQuery;
   // Internal implementation of a recursive `flatten` function.
   var flatten = function(input, shallow, strict, startIndex) {
     var output = [], idx = 0;
-    for (var i = startIndex || 0, length = getLength(input); i < length; i++) {
+    for (var i = startIndex || 0, length = input && input.length; i < length; i++) {
       var value = input[i];
       if (isArrayLike(value) && (_.isArray(value) || _.isArguments(value))) {
         //flatten current level of array or arguments object
@@ -16708,6 +16699,7 @@ return jQuery;
   // been sorted, you have the option of using a faster algorithm.
   // Aliased as `unique`.
   _.uniq = _.unique = function(array, isSorted, iteratee, context) {
+    if (array == null) return [];
     if (!_.isBoolean(isSorted)) {
       context = iteratee;
       iteratee = isSorted;
@@ -16716,7 +16708,7 @@ return jQuery;
     if (iteratee != null) iteratee = cb(iteratee, context);
     var result = [];
     var seen = [];
-    for (var i = 0, length = getLength(array); i < length; i++) {
+    for (var i = 0, length = array.length; i < length; i++) {
       var value = array[i],
           computed = iteratee ? iteratee(value, i, array) : value;
       if (isSorted) {
@@ -16743,9 +16735,10 @@ return jQuery;
   // Produce an array that contains every item shared between all the
   // passed-in arrays.
   _.intersection = function(array) {
+    if (array == null) return [];
     var result = [];
     var argsLength = arguments.length;
-    for (var i = 0, length = getLength(array); i < length; i++) {
+    for (var i = 0, length = array.length; i < length; i++) {
       var item = array[i];
       if (_.contains(result, item)) continue;
       for (var j = 1; j < argsLength; j++) {
@@ -16774,7 +16767,7 @@ return jQuery;
   // Complement of _.zip. Unzip accepts an array of arrays and groups
   // each array's elements on shared indices
   _.unzip = function(array) {
-    var length = array && _.max(array, getLength).length || 0;
+    var length = array && _.max(array, 'length').length || 0;
     var result = Array(length);
 
     for (var index = 0; index < length; index++) {
@@ -16788,7 +16781,7 @@ return jQuery;
   // the corresponding values.
   _.object = function(list, values) {
     var result = {};
-    for (var i = 0, length = getLength(list); i < length; i++) {
+    for (var i = 0, length = list && list.length; i < length; i++) {
       if (values) {
         result[list[i]] = values[i];
       } else {
@@ -16798,11 +16791,42 @@ return jQuery;
     return result;
   };
 
+  // Return the position of the first occurrence of an item in an array,
+  // or -1 if the item is not included in the array.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    var i = 0, length = array && array.length;
+    if (typeof isSorted == 'number') {
+      i = isSorted < 0 ? Math.max(0, length + isSorted) : isSorted;
+    } else if (isSorted && length) {
+      i = _.sortedIndex(array, item);
+      return array[i] === item ? i : -1;
+    }
+    if (item !== item) {
+      return _.findIndex(slice.call(array, i), _.isNaN);
+    }
+    for (; i < length; i++) if (array[i] === item) return i;
+    return -1;
+  };
+
+  _.lastIndexOf = function(array, item, from) {
+    var idx = array ? array.length : 0;
+    if (typeof from == 'number') {
+      idx = from < 0 ? idx + from + 1 : Math.min(idx, from + 1);
+    }
+    if (item !== item) {
+      return _.findLastIndex(slice.call(array, 0, idx), _.isNaN);
+    }
+    while (--idx >= 0) if (array[idx] === item) return idx;
+    return -1;
+  };
+
   // Generator function to create the findIndex and findLastIndex functions
-  function createPredicateIndexFinder(dir) {
+  function createIndexFinder(dir) {
     return function(array, predicate, context) {
       predicate = cb(predicate, context);
-      var length = getLength(array);
+      var length = array != null && array.length;
       var index = dir > 0 ? 0 : length - 1;
       for (; index >= 0 && index < length; index += dir) {
         if (predicate(array[index], index, array)) return index;
@@ -16812,15 +16836,16 @@ return jQuery;
   }
 
   // Returns the first index on an array-like that passes a predicate test
-  _.findIndex = createPredicateIndexFinder(1);
-  _.findLastIndex = createPredicateIndexFinder(-1);
+  _.findIndex = createIndexFinder(1);
+
+  _.findLastIndex = createIndexFinder(-1);
 
   // Use a comparator function to figure out the smallest index at which
   // an object should be inserted so as to maintain order. Uses binary search.
   _.sortedIndex = function(array, obj, iteratee, context) {
     iteratee = cb(iteratee, context, 1);
     var value = iteratee(obj);
-    var low = 0, high = getLength(array);
+    var low = 0, high = array.length;
     while (low < high) {
       var mid = Math.floor((low + high) / 2);
       if (iteratee(array[mid]) < value) low = mid + 1; else high = mid;
@@ -16828,43 +16853,11 @@ return jQuery;
     return low;
   };
 
-  // Generator function to create the indexOf and lastIndexOf functions
-  function createIndexFinder(dir, predicateFind, sortedIndex) {
-    return function(array, item, idx) {
-      var i = 0, length = getLength(array);
-      if (typeof idx == 'number') {
-        if (dir > 0) {
-            i = idx >= 0 ? idx : Math.max(idx + length, i);
-        } else {
-            length = idx >= 0 ? Math.min(idx + 1, length) : idx + length + 1;
-        }
-      } else if (sortedIndex && idx && length) {
-        idx = sortedIndex(array, item);
-        return array[idx] === item ? idx : -1;
-      }
-      if (item !== item) {
-        idx = predicateFind(slice.call(array, i, length), _.isNaN);
-        return idx >= 0 ? idx + i : -1;
-      }
-      for (idx = dir > 0 ? i : length - 1; idx >= 0 && idx < length; idx += dir) {
-        if (array[idx] === item) return idx;
-      }
-      return -1;
-    };
-  }
-
-  // Return the position of the first occurrence of an item in an array,
-  // or -1 if the item is not included in the array.
-  // If the array is large and already in sort order, pass `true`
-  // for **isSorted** to use binary search.
-  _.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
-  _.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
-
   // Generate an integer Array containing an arithmetic progression. A port of
   // the native Python `range()` function. See
   // [the Python documentation](http://docs.python.org/library/functions.html#range).
   _.range = function(start, stop, step) {
-    if (stop == null) {
+    if (arguments.length <= 1) {
       stop = start || 0;
       start = 0;
     }
@@ -17243,15 +17236,6 @@ return jQuery;
   // Fill in a given object with default properties.
   _.defaults = createAssigner(_.allKeys, true);
 
-  // Creates an object that inherits from the given prototype object.
-  // If additional properties are provided then they will be added to the
-  // created object.
-  _.create = function(prototype, props) {
-    var result = baseCreate(prototype);
-    if (props) _.extendOwn(result, props);
-    return result;
-  };
-
   // Create a (shallow-cloned) duplicate of an object.
   _.clone = function(obj) {
     if (!_.isObject(obj)) return obj;
@@ -17329,7 +17313,7 @@ return jQuery;
     }
     // Assume equality for cyclic structures. The algorithm for detecting cyclic
     // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-
+    
     // Initializing stack of traversed objects.
     // It's done here since we only need them for objects and arrays comparison.
     aStack = aStack || [];
@@ -17480,7 +17464,11 @@ return jQuery;
 
   _.noop = function(){};
 
-  _.property = property;
+  _.property = function(key) {
+    return function(obj) {
+      return obj == null ? void 0 : obj[key];
+    };
+  };
 
   // Generates a function for a given object that returns a given property.
   _.propertyOf = function(obj) {
@@ -17489,7 +17477,7 @@ return jQuery;
     };
   };
 
-  // Returns a predicate for checking whether an object has a given set of
+  // Returns a predicate for checking whether an object has a given set of 
   // `key:value` pairs.
   _.matcher = _.matches = function(attrs) {
     attrs = _.extendOwn({}, attrs);
@@ -17716,7 +17704,7 @@ return jQuery;
   // Provide unwrapping proxy for some methods used in engine operations
   // such as arithmetic and JSON stringification.
   _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
-
+  
   _.prototype.toString = function() {
     return '' + this._wrapped;
   };
@@ -17742,7 +17730,6 @@ var Backbone = require('backbone'),
 	UserView = require('../views/user'),
 	TaskView = require('../views/taskList'),
 	OldTaskView = require('../views/oldTaskList'),
-	//ClockView = require('../views/clock'),
 	TaskCollection = require('../collections/task'),
 	UserModel = require('../models/user'),
 	TaskModel = require('../models/task'),
@@ -18026,13 +18013,11 @@ module.exports = Marionette.ItemView.extend({
 	pause: function(){
 		this.timer.statusTask(this.model.get('pkid'),3);
 		this.destroy();
-		//this.send(3);
 	},
 
 	finish: function(){
 		this.timer.statusTask(this.model.get('pkid'),4);
 		this.destroy();
-		//this.send(4);
 	},
 
 	send: function(idType){
@@ -18051,20 +18036,12 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	onRender : function(){
-		var elapsedTime = 3600;
-		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
-		if( _.find(tasklist,{ cid : this.model.get('pkid') })){
-			prevElapsedTime = _.findWhere(JSON.parse(localStorage.khaleesiTime),{ cid : this.model.get('pkid') });
-			elapsedTime = prevElapsedTime.elapsed;
-			//this.timer = Backbone.app.timer[this.model.get('pkid')];
-			//console.log(this.timer);
-			//this.trigger(this.viewTimer());
-		}
-		this.timer = new Timer({ duration : elapsedTime, cid : this.model.get('pkid') });
+		this.timer = new Timer({ cid : this.model.get('pkid') });
 		this.trigger(this.viewTimer());
 	},
 
 	viewTimer : function(){
+		this.timer.getTime();
 		this.$el.find('.timer').html(this.timer.minTime+':'+this.timer.secTime);
 		var timeView = setTimeout(function(){this.viewTimer()}.bind(this),1000);
 	},
@@ -18136,7 +18113,6 @@ module.exports = Backbone.View.extend({
 				if( obj.cid ){
 					this.mIde = obj.cid;
 				}
-				this.stop();
 			}
 		}
 	},
@@ -18235,7 +18211,20 @@ module.exports = Backbone.View.extend({
 			}
 		}
 		req.send(null);
-	}
+	},
+
+	getTime : function(){
+		var self = this;
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : self.mIde }) ){
+			_.each(tasklist,function(k){
+				if( k.cid == self.mIde ){
+					self.minTime = Math.floor(k.elapsed/60);
+					self.secTime = k.elapsed - (self.minTime*60);
+				}
+			});
+		}
+	},
 
 });
 
