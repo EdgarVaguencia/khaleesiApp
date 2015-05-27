@@ -17,7 +17,6 @@ module.exports = Backbone.View.extend({
 				if( obj.cid ){
 					this.mIde = obj.cid;
 				}
-				this.stop();
 			}
 		}
 	},
@@ -116,6 +115,19 @@ module.exports = Backbone.View.extend({
 			}
 		}
 		req.send(null);
-	}
+	},
+
+	getTime : function(){
+		var self = this;
+		localStorage.khaleesiTime.length > 0 ? tasklist = JSON.parse(localStorage.khaleesiTime) : tasklist = [];
+		if( _.find(tasklist,{ cid : self.mIde }) ){
+			_.each(tasklist,function(k){
+				if( k.cid == self.mIde ){
+					self.minTime = Math.floor(k.elapsed/60);
+					self.secTime = k.elapsed - (self.minTime*60);
+				}
+			});
+		}
+	},
 
 });
