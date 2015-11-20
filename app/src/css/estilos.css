@@ -1,0 +1,37 @@
+.nav-group-item {
+  min-height: 24px;
+}
+.nav-group-item:hover {
+  background: #dcdfe1;
+}
+.pane {
+  padding: 0 5px;
+  position: static;
+}
+.pane h4 {
+  text-align: center;
+}
+.pane .list-group {
+  min-height: 50px;
+}
+.pane .list-group.highlight {
+  border: 1px solid #dcdfe1;
+}
+.pane .droptask:hover > .pull-left {
+  display: block;
+}
+.pane .droptask .pull-left {
+  cursor: move;
+  display: none;
+  margin-right: 5px;
+  opacity: 0.5;
+}
+.pane .droptask .media-body {
+  margin-left: 12px;
+}
+.window-body {
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+}

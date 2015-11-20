@@ -1,0 +1,31 @@
+$highlight = #dcdfe1
+
+.nav-group-item
+  min-height 24px
+  &:hover
+    background #dcdfe1
+
+.pane
+  padding 0 5px
+  position static
+  h4
+    text-align center
+  .list-group
+    min-height 50px
+    &.highlight
+      border 1px solid $highlight
+  .droptask
+    &:hover
+      > .pull-left
+        display block
+    .pull-left
+      cursor move
+      display none
+      margin-right 5px
+      opacity 0.5
+    .media-body
+      margin-left 12px
+
+.window-body
+  display flex
+  width 100%

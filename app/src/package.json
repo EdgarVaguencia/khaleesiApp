@@ -1,0 +1,37 @@
+{
+  "name": "khaleesiapp",
+  "version": "0.1.0",
+  "description": "Cliente escritorio de khaleesi usando electron",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EdgarVaguencia/khaleesiApp.git"
+  },
+  "author": "Edgar Valencia <isc.edgarvalencia@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EdgarVaguencia/khaleesiApp/issues"
+  },
+  "homepage": "https://github.com/EdgarVaguencia/khaleesiApp#readme",
+  "devDependencies": {
+    "electron-packager": "^5.1.1",
+    "electron-prebuilt": "^0.34.3",
+    "gulp": "^3.9.0",
+    "gulp-autoprefixer": "^2.3.1",
+    "gulp-clean": "^0.3.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-csso": "^1.0.1",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-stylus": "^2.1.0",
+    "gulp-uglify": "^1.4.2"
+  },
+  "dependencies": {
+    "backbone": "^1.2.3",
+    "jquery": "^2.1.4",
+    "jsonfile": "^2.2.3",
+    "underscore": "^1.8.3"
+  }
+}
