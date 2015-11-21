@@ -13,7 +13,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
     this.pausadas = new Khaleesi.Collections.Tareas();
     this.terminadas = new Khaleesi.Collections.Tareas();
     this.bloqueadas = new Khaleesi.Collections.Tareas();
-    this.listPendientes = new Khaleesi.Views.List({title: 'pendientes', collection: this.pendientes, _status: 0});
+    this.listPendientes = new Khaleesi.Views.List({title: 'pendientes', collection: this.pendientes, _status: 1});
     this.listProceso = new Khaleesi.Views.List({title: 'en proceso', collection: this.proceso, _status: 2});
     this.listPausadas = new Khaleesi.Views.List({title: 'pausadas', collection: this.pausadas, _status: 3});
     this.listTerminadas = new Khaleesi.Views.List({title: 'terminadas', collection: this.terminadas, _status: 4});
@@ -31,7 +31,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
 
   addTarea: function(tarea) {
     const self = this;
-    if (tarea.get('status') < 2) {
+    if (tarea.get('status') === 1) {
       self.pendientes.add(tarea);
     }else if (tarea.get('status') === 2) {
       self.proceso.add(tarea);
@@ -50,7 +50,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
   },
 
   removeList: function(status, tarea) {
-    if (status === 0) {
+    if (status === 1) {
       this.pendientes.remove(tarea);
     }else if (status === 2) {
       this.proceso.remove(tarea);
@@ -78,7 +78,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
         console.log(data);
       });
     }
-    if (status === 0) {
+    if (status === 1) {
       this.pendientes.add(tarea);
     }else if (status === 2) {
       this.proceso.add(tarea);

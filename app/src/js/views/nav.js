@@ -10,6 +10,10 @@ Khaleesi.Views.Dashboard = Backbone.View.extend({
     'click .setting': 'optionView'
   },
 
+  initialize: function() {
+    this.listenTo(this.model, 'change', this.userView, this);
+  },
+
   taskView: function(e){
     this.$el.find('a.active').removeClass('active');
     jQuery(e.target).parent().addClass('active');
@@ -23,6 +27,6 @@ Khaleesi.Views.Dashboard = Backbone.View.extend({
   },
 
   userView: function() {
-    this.$el.find('#user').html(Khaleesi.app.sync.get('first_name'));
+    this.$el.find('#user').html(this.model.get('first_name'));
   },
 });

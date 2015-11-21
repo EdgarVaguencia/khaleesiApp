@@ -12,7 +12,7 @@ Khaleesi.Router = Backbone.Router.extend({
   initialize: function() {
     this.sync = new Khaleesi.Models.Sync();
     this.tareas = new Khaleesi.Collections.Tareas();
-    this.nav = new Khaleesi.Views.Dashboard();
+    this.nav = new Khaleesi.Views.Dashboard({model: this.sync});
     this.listTareas = new Khaleesi.Views.Tareas({collection: this.tareas});
     this.configurations = new Khaleesi.Views.Options();
     this.msj = new Khaleesi.Views.Mensajes();
@@ -28,6 +28,9 @@ Khaleesi.Router = Backbone.Router.extend({
 
   tasks: function() {
     if (this.sync.get('token').length > 0 && this.sync.get('user').length > 0) {
+      if (this.sync.get('first_name') !== '') {
+        this.fetchUser();
+      }
       this.listTareas.render();
       this.fetchTareas();
     }
@@ -61,10 +64,11 @@ Khaleesi.Router = Backbone.Router.extend({
                 description: item.descripcion,
                 end: item.fecha_final,
                 hours: item.horas_estimadas,
+                // h_reales: item.horas_reales,
                 ide: item.id,
                 name: item.nombre,
                 resource: item.resource_uri,
-                status: item.status
+                status: item.pizarron_status
               });
             self.tareas.add(tarea);
           });

@@ -165,6 +165,10 @@ Khaleesi.Views.Dashboard = Backbone.View.extend({
     'click .setting': 'optionView'
   },
 
+  initialize: function() {
+    this.listenTo(this.model, 'change', this.userView, this);
+  },
+
   taskView: function(e){
     this.$el.find('a.active').removeClass('active');
     jQuery(e.target).parent().addClass('active');
@@ -178,7 +182,7 @@ Khaleesi.Views.Dashboard = Backbone.View.extend({
   },
 
   userView: function() {
-    this.$el.find('#user').html(Khaleesi.app.sync.get('first_name'));
+    this.$el.find('#user').html(this.model.get('first_name'));
   },
 });
 
@@ -233,7 +237,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
     this.pausadas = new Khaleesi.Collections.Tareas();
     this.terminadas = new Khaleesi.Collections.Tareas();
     this.bloqueadas = new Khaleesi.Collections.Tareas();
-    this.listPendientes = new Khaleesi.Views.List({title: 'pendientes', collection: this.pendientes, _status: 0});
+    this.listPendientes = new Khaleesi.Views.List({title: 'pendientes', collection: this.pendientes, _status: 1});
     this.listProceso = new Khaleesi.Views.List({title: 'en proceso', collection: this.proceso, _status: 2});
     this.listPausadas = new Khaleesi.Views.List({title: 'pausadas', collection: this.pausadas, _status: 3});
     this.listTerminadas = new Khaleesi.Views.List({title: 'terminadas', collection: this.terminadas, _status: 4});
@@ -251,7 +255,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
 
   addTarea: function(tarea) {
     const self = this;
-    if (tarea.get('status') < 2) {
+    if (tarea.get('status') === 1) {
       self.pendientes.add(tarea);
     }else if (tarea.get('status') === 2) {
       self.proceso.add(tarea);
@@ -270,7 +274,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
   },
 
   removeList: function(status, tarea) {
-    if (status === 0) {
+    if (status === 1) {
       this.pendientes.remove(tarea);
     }else if (status === 2) {
       this.proceso.remove(tarea);
@@ -298,7 +302,7 @@ Khaleesi.Views.Tareas = Backbone.View.extend({
         console.log(data);
       });
     }
-    if (status === 0) {
+    if (status === 1) {
       this.pendientes.add(tarea);
     }else if (status === 2) {
       this.proceso.add(tarea);
@@ -326,7 +330,7 @@ Khaleesi.Router = Backbone.Router.extend({
   initialize: function() {
     this.sync = new Khaleesi.Models.Sync();
     this.tareas = new Khaleesi.Collections.Tareas();
-    this.nav = new Khaleesi.Views.Dashboard();
+    this.nav = new Khaleesi.Views.Dashboard({model: this.sync});
     this.listTareas = new Khaleesi.Views.Tareas({collection: this.tareas});
     this.configurations = new Khaleesi.Views.Options();
     this.msj = new Khaleesi.Views.Mensajes();
@@ -342,6 +346,9 @@ Khaleesi.Router = Backbone.Router.extend({
 
   tasks: function() {
     if (this.sync.get('token').length > 0 && this.sync.get('user').length > 0) {
+      if (this.sync.get('first_name') !== '') {
+        this.fetchUser();
+      }
       this.listTareas.render();
       this.fetchTareas();
     }
@@ -375,10 +382,11 @@ Khaleesi.Router = Backbone.Router.extend({
                 description: item.descripcion,
                 end: item.fecha_final,
                 hours: item.horas_estimadas,
+                // h_reales: item.horas_reales,
                 ide: item.id,
                 name: item.nombre,
                 resource: item.resource_uri,
-                status: item.status
+                status: item.pizarron_status
               });
             self.tareas.add(tarea);
           });
