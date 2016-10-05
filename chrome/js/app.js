@@ -27,6 +27,198 @@ module.exports = Backbone.Model.extend();
 },{"backbone":9}],4:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
 },{"backbone":9,"dup":3}],5:[function(require,module,exports){
+// Backbone.BabySitter
+// -------------------
+// v0.1.11
+//
+// Copyright (c)2016 Derick Bailey, Muted Solutions, LLC.
+// Distributed under MIT license
+//
+// http://github.com/marionettejs/backbone.babysitter
+
+(function(root, factory) {
+
+  if (typeof define === 'function' && define.amd) {
+    define(['backbone', 'underscore'], function(Backbone, _) {
+      return factory(Backbone, _);
+    });
+  } else if (typeof exports !== 'undefined') {
+    var Backbone = require('backbone');
+    var _ = require('underscore');
+    module.exports = factory(Backbone, _);
+  } else {
+    factory(root.Backbone, root._);
+  }
+
+}(this, function(Backbone, _) {
+  'use strict';
+
+  var previousChildViewContainer = Backbone.ChildViewContainer;
+
+  // BabySitter.ChildViewContainer
+  // -----------------------------
+  //
+  // Provide a container to store, retrieve and
+  // shut down child views.
+  
+  Backbone.ChildViewContainer = (function (Backbone, _) {
+  
+    // Container Constructor
+    // ---------------------
+  
+    var Container = function(views){
+      this._views = {};
+      this._indexByModel = {};
+      this._indexByCustom = {};
+      this._updateLength();
+  
+      _.each(views, this.add, this);
+    };
+  
+    // Container Methods
+    // -----------------
+  
+    _.extend(Container.prototype, {
+  
+      // Add a view to this container. Stores the view
+      // by `cid` and makes it searchable by the model
+      // cid (and model itself). Optionally specify
+      // a custom key to store an retrieve the view.
+      add: function(view, customIndex){
+        var viewCid = view.cid;
+  
+        // store the view
+        this._views[viewCid] = view;
+  
+        // index it by model
+        if (view.model){
+          this._indexByModel[view.model.cid] = viewCid;
+        }
+  
+        // index by custom
+        if (customIndex){
+          this._indexByCustom[customIndex] = viewCid;
+        }
+  
+        this._updateLength();
+        return this;
+      },
+  
+      // Find a view by the model that was attached to
+      // it. Uses the model's `cid` to find it.
+      findByModel: function(model){
+        return this.findByModelCid(model.cid);
+      },
+  
+      // Find a view by the `cid` of the model that was attached to
+      // it. Uses the model's `cid` to find the view `cid` and
+      // retrieve the view using it.
+      findByModelCid: function(modelCid){
+        var viewCid = this._indexByModel[modelCid];
+        return this.findByCid(viewCid);
+      },
+  
+      // Find a view by a custom indexer.
+      findByCustom: function(index){
+        var viewCid = this._indexByCustom[index];
+        return this.findByCid(viewCid);
+      },
+  
+      // Find by index. This is not guaranteed to be a
+      // stable index.
+      findByIndex: function(index){
+        return _.values(this._views)[index];
+      },
+  
+      // retrieve a view by its `cid` directly
+      findByCid: function(cid){
+        return this._views[cid];
+      },
+  
+      // Remove a view
+      remove: function(view){
+        var viewCid = view.cid;
+  
+        // delete model index
+        if (view.model){
+          delete this._indexByModel[view.model.cid];
+        }
+  
+        // delete custom index
+        _.any(this._indexByCustom, function(cid, key) {
+          if (cid === viewCid) {
+            delete this._indexByCustom[key];
+            return true;
+          }
+        }, this);
+  
+        // remove the view from the container
+        delete this._views[viewCid];
+  
+        // update the length
+        this._updateLength();
+        return this;
+      },
+  
+      // Call a method on every view in the container,
+      // passing parameters to the call method one at a
+      // time, like `function.call`.
+      call: function(method){
+        this.apply(method, _.tail(arguments));
+      },
+  
+      // Apply a method on every view in the container,
+      // passing parameters to the call method one at a
+      // time, like `function.apply`.
+      apply: function(method, args){
+        _.each(this._views, function(view){
+          if (_.isFunction(view[method])){
+            view[method].apply(view, args || []);
+          }
+        });
+      },
+  
+      // Update the `.length` attribute on this container
+      _updateLength: function(){
+        this.length = _.size(this._views);
+      }
+    });
+  
+    // Borrowing this code from Backbone.Collection:
+    // http://backbonejs.org/docs/backbone.html#section-106
+    //
+    // Mix in methods from Underscore, for iteration, and other
+    // collection related features.
+    var methods = ['forEach', 'each', 'map', 'find', 'detect', 'filter',
+      'select', 'reject', 'every', 'all', 'some', 'any', 'include',
+      'contains', 'invoke', 'toArray', 'first', 'initial', 'rest',
+      'last', 'without', 'isEmpty', 'pluck', 'reduce'];
+  
+    _.each(methods, function(method) {
+      Container.prototype[method] = function() {
+        var views = _.values(this._views);
+        var args = [views].concat(_.toArray(arguments));
+        return _[method].apply(_, args);
+      };
+    });
+  
+    // return the public API
+    return Container;
+  })(Backbone, _);
+  
+
+  Backbone.ChildViewContainer.VERSION = '0.1.11';
+
+  Backbone.ChildViewContainer.noConflict = function () {
+    Backbone.ChildViewContainer = previousChildViewContainer;
+    return this;
+  };
+
+  return Backbone.ChildViewContainer;
+
+}));
+
+},{"backbone":9,"underscore":11}],6:[function(require,module,exports){
 // MarionetteJS (Backbone.Marionette)
 // ----------------------------------
 // v2.3.2
@@ -3156,641 +3348,7 @@ arguments[4][3][0].apply(exports,arguments)
   return Marionette;
 }));
 
-},{"backbone":9,"backbone.babysitter":6,"backbone.wreqr":7,"underscore":8}],6:[function(require,module,exports){
-// Backbone.BabySitter
-// -------------------
-// v0.1.6
-//
-// Copyright (c)2015 Derick Bailey, Muted Solutions, LLC.
-// Distributed under MIT license
-//
-// http://github.com/marionettejs/backbone.babysitter
-
-(function(root, factory) {
-
-  if (typeof define === 'function' && define.amd) {
-    define(['backbone', 'underscore'], function(Backbone, _) {
-      return factory(Backbone, _);
-    });
-  } else if (typeof exports !== 'undefined') {
-    var Backbone = require('backbone');
-    var _ = require('underscore');
-    module.exports = factory(Backbone, _);
-  } else {
-    factory(root.Backbone, root._);
-  }
-
-}(this, function(Backbone, _) {
-  'use strict';
-
-  var previousChildViewContainer = Backbone.ChildViewContainer;
-
-  // BabySitter.ChildViewContainer
-  // -----------------------------
-  //
-  // Provide a container to store, retrieve and
-  // shut down child views.
-  
-  Backbone.ChildViewContainer = (function (Backbone, _) {
-  
-    // Container Constructor
-    // ---------------------
-  
-    var Container = function(views){
-      this._views = {};
-      this._indexByModel = {};
-      this._indexByCustom = {};
-      this._updateLength();
-  
-      _.each(views, this.add, this);
-    };
-  
-    // Container Methods
-    // -----------------
-  
-    _.extend(Container.prototype, {
-  
-      // Add a view to this container. Stores the view
-      // by `cid` and makes it searchable by the model
-      // cid (and model itself). Optionally specify
-      // a custom key to store an retrieve the view.
-      add: function(view, customIndex){
-        var viewCid = view.cid;
-  
-        // store the view
-        this._views[viewCid] = view;
-  
-        // index it by model
-        if (view.model){
-          this._indexByModel[view.model.cid] = viewCid;
-        }
-  
-        // index by custom
-        if (customIndex){
-          this._indexByCustom[customIndex] = viewCid;
-        }
-  
-        this._updateLength();
-        return this;
-      },
-  
-      // Find a view by the model that was attached to
-      // it. Uses the model's `cid` to find it.
-      findByModel: function(model){
-        return this.findByModelCid(model.cid);
-      },
-  
-      // Find a view by the `cid` of the model that was attached to
-      // it. Uses the model's `cid` to find the view `cid` and
-      // retrieve the view using it.
-      findByModelCid: function(modelCid){
-        var viewCid = this._indexByModel[modelCid];
-        return this.findByCid(viewCid);
-      },
-  
-      // Find a view by a custom indexer.
-      findByCustom: function(index){
-        var viewCid = this._indexByCustom[index];
-        return this.findByCid(viewCid);
-      },
-  
-      // Find by index. This is not guaranteed to be a
-      // stable index.
-      findByIndex: function(index){
-        return _.values(this._views)[index];
-      },
-  
-      // retrieve a view by its `cid` directly
-      findByCid: function(cid){
-        return this._views[cid];
-      },
-  
-      // Remove a view
-      remove: function(view){
-        var viewCid = view.cid;
-  
-        // delete model index
-        if (view.model){
-          delete this._indexByModel[view.model.cid];
-        }
-  
-        // delete custom index
-        _.any(this._indexByCustom, function(cid, key) {
-          if (cid === viewCid) {
-            delete this._indexByCustom[key];
-            return true;
-          }
-        }, this);
-  
-        // remove the view from the container
-        delete this._views[viewCid];
-  
-        // update the length
-        this._updateLength();
-        return this;
-      },
-  
-      // Call a method on every view in the container,
-      // passing parameters to the call method one at a
-      // time, like `function.call`.
-      call: function(method){
-        this.apply(method, _.tail(arguments));
-      },
-  
-      // Apply a method on every view in the container,
-      // passing parameters to the call method one at a
-      // time, like `function.apply`.
-      apply: function(method, args){
-        _.each(this._views, function(view){
-          if (_.isFunction(view[method])){
-            view[method].apply(view, args || []);
-          }
-        });
-      },
-  
-      // Update the `.length` attribute on this container
-      _updateLength: function(){
-        this.length = _.size(this._views);
-      }
-    });
-  
-    // Borrowing this code from Backbone.Collection:
-    // http://backbonejs.org/docs/backbone.html#section-106
-    //
-    // Mix in methods from Underscore, for iteration, and other
-    // collection related features.
-    var methods = ['forEach', 'each', 'map', 'find', 'detect', 'filter',
-      'select', 'reject', 'every', 'all', 'some', 'any', 'include',
-      'contains', 'invoke', 'toArray', 'first', 'initial', 'rest',
-      'last', 'without', 'isEmpty', 'pluck', 'reduce'];
-  
-    _.each(methods, function(method) {
-      Container.prototype[method] = function() {
-        var views = _.values(this._views);
-        var args = [views].concat(_.toArray(arguments));
-        return _[method].apply(_, args);
-      };
-    });
-  
-    // return the public API
-    return Container;
-  })(Backbone, _);
-  
-
-  Backbone.ChildViewContainer.VERSION = '0.1.6';
-
-  Backbone.ChildViewContainer.noConflict = function () {
-    Backbone.ChildViewContainer = previousChildViewContainer;
-    return this;
-  };
-
-  return Backbone.ChildViewContainer;
-
-}));
-
-},{"backbone":9,"underscore":8}],7:[function(require,module,exports){
-// Backbone.Wreqr (Backbone.Marionette)
-// ----------------------------------
-// v1.3.1
-//
-// Copyright (c)2014 Derick Bailey, Muted Solutions, LLC.
-// Distributed under MIT license
-//
-// http://github.com/marionettejs/backbone.wreqr
-
-
-(function(root, factory) {
-
-  if (typeof define === 'function' && define.amd) {
-    define(['backbone', 'underscore'], function(Backbone, _) {
-      return factory(Backbone, _);
-    });
-  } else if (typeof exports !== 'undefined') {
-    var Backbone = require('backbone');
-    var _ = require('underscore');
-    module.exports = factory(Backbone, _);
-  } else {
-    factory(root.Backbone, root._);
-  }
-
-}(this, function(Backbone, _) {
-  "use strict";
-
-  var previousWreqr = Backbone.Wreqr;
-
-  var Wreqr = Backbone.Wreqr = {};
-
-  Backbone.Wreqr.VERSION = '1.3.1';
-
-  Backbone.Wreqr.noConflict = function () {
-    Backbone.Wreqr = previousWreqr;
-    return this;
-  };
-
-  // Handlers
-  // --------
-  // A registry of functions to call, given a name
-  
-  Wreqr.Handlers = (function(Backbone, _){
-    "use strict";
-    
-    // Constructor
-    // -----------
-  
-    var Handlers = function(options){
-      this.options = options;
-      this._wreqrHandlers = {};
-      
-      if (_.isFunction(this.initialize)){
-        this.initialize(options);
-      }
-    };
-  
-    Handlers.extend = Backbone.Model.extend;
-  
-    // Instance Members
-    // ----------------
-  
-    _.extend(Handlers.prototype, Backbone.Events, {
-  
-      // Add multiple handlers using an object literal configuration
-      setHandlers: function(handlers){
-        _.each(handlers, function(handler, name){
-          var context = null;
-  
-          if (_.isObject(handler) && !_.isFunction(handler)){
-            context = handler.context;
-            handler = handler.callback;
-          }
-  
-          this.setHandler(name, handler, context);
-        }, this);
-      },
-  
-      // Add a handler for the given name, with an
-      // optional context to run the handler within
-      setHandler: function(name, handler, context){
-        var config = {
-          callback: handler,
-          context: context
-        };
-  
-        this._wreqrHandlers[name] = config;
-  
-        this.trigger("handler:add", name, handler, context);
-      },
-  
-      // Determine whether or not a handler is registered
-      hasHandler: function(name){
-        return !! this._wreqrHandlers[name];
-      },
-  
-      // Get the currently registered handler for
-      // the specified name. Throws an exception if
-      // no handler is found.
-      getHandler: function(name){
-        var config = this._wreqrHandlers[name];
-  
-        if (!config){
-          return;
-        }
-  
-        return function(){
-          var args = Array.prototype.slice.apply(arguments);
-          return config.callback.apply(config.context, args);
-        };
-      },
-  
-      // Remove a handler for the specified name
-      removeHandler: function(name){
-        delete this._wreqrHandlers[name];
-      },
-  
-      // Remove all handlers from this registry
-      removeAllHandlers: function(){
-        this._wreqrHandlers = {};
-      }
-    });
-  
-    return Handlers;
-  })(Backbone, _);
-  
-  // Wreqr.CommandStorage
-  // --------------------
-  //
-  // Store and retrieve commands for execution.
-  Wreqr.CommandStorage = (function(){
-    "use strict";
-  
-    // Constructor function
-    var CommandStorage = function(options){
-      this.options = options;
-      this._commands = {};
-  
-      if (_.isFunction(this.initialize)){
-        this.initialize(options);
-      }
-    };
-  
-    // Instance methods
-    _.extend(CommandStorage.prototype, Backbone.Events, {
-  
-      // Get an object literal by command name, that contains
-      // the `commandName` and the `instances` of all commands
-      // represented as an array of arguments to process
-      getCommands: function(commandName){
-        var commands = this._commands[commandName];
-  
-        // we don't have it, so add it
-        if (!commands){
-  
-          // build the configuration
-          commands = {
-            command: commandName, 
-            instances: []
-          };
-  
-          // store it
-          this._commands[commandName] = commands;
-        }
-  
-        return commands;
-      },
-  
-      // Add a command by name, to the storage and store the
-      // args for the command
-      addCommand: function(commandName, args){
-        var command = this.getCommands(commandName);
-        command.instances.push(args);
-      },
-  
-      // Clear all commands for the given `commandName`
-      clearCommands: function(commandName){
-        var command = this.getCommands(commandName);
-        command.instances = [];
-      }
-    });
-  
-    return CommandStorage;
-  })();
-  
-  // Wreqr.Commands
-  // --------------
-  //
-  // A simple command pattern implementation. Register a command
-  // handler and execute it.
-  Wreqr.Commands = (function(Wreqr){
-    "use strict";
-  
-    return Wreqr.Handlers.extend({
-      // default storage type
-      storageType: Wreqr.CommandStorage,
-  
-      constructor: function(options){
-        this.options = options || {};
-  
-        this._initializeStorage(this.options);
-        this.on("handler:add", this._executeCommands, this);
-  
-        var args = Array.prototype.slice.call(arguments);
-        Wreqr.Handlers.prototype.constructor.apply(this, args);
-      },
-  
-      // Execute a named command with the supplied args
-      execute: function(name, args){
-        name = arguments[0];
-        args = Array.prototype.slice.call(arguments, 1);
-  
-        if (this.hasHandler(name)){
-          this.getHandler(name).apply(this, args);
-        } else {
-          this.storage.addCommand(name, args);
-        }
-  
-      },
-  
-      // Internal method to handle bulk execution of stored commands
-      _executeCommands: function(name, handler, context){
-        var command = this.storage.getCommands(name);
-  
-        // loop through and execute all the stored command instances
-        _.each(command.instances, function(args){
-          handler.apply(context, args);
-        });
-  
-        this.storage.clearCommands(name);
-      },
-  
-      // Internal method to initialize storage either from the type's
-      // `storageType` or the instance `options.storageType`.
-      _initializeStorage: function(options){
-        var storage;
-  
-        var StorageType = options.storageType || this.storageType;
-        if (_.isFunction(StorageType)){
-          storage = new StorageType();
-        } else {
-          storage = StorageType;
-        }
-  
-        this.storage = storage;
-      }
-    });
-  
-  })(Wreqr);
-  
-  // Wreqr.RequestResponse
-  // ---------------------
-  //
-  // A simple request/response implementation. Register a
-  // request handler, and return a response from it
-  Wreqr.RequestResponse = (function(Wreqr){
-    "use strict";
-  
-    return Wreqr.Handlers.extend({
-      request: function(){
-        var name = arguments[0];
-        var args = Array.prototype.slice.call(arguments, 1);
-        if (this.hasHandler(name)) {
-          return this.getHandler(name).apply(this, args);
-        }
-      }
-    });
-  
-  })(Wreqr);
-  
-  // Event Aggregator
-  // ----------------
-  // A pub-sub object that can be used to decouple various parts
-  // of an application through event-driven architecture.
-  
-  Wreqr.EventAggregator = (function(Backbone, _){
-    "use strict";
-    var EA = function(){};
-  
-    // Copy the `extend` function used by Backbone's classes
-    EA.extend = Backbone.Model.extend;
-  
-    // Copy the basic Backbone.Events on to the event aggregator
-    _.extend(EA.prototype, Backbone.Events);
-  
-    return EA;
-  })(Backbone, _);
-  
-  // Wreqr.Channel
-  // --------------
-  //
-  // An object that wraps the three messaging systems:
-  // EventAggregator, RequestResponse, Commands
-  Wreqr.Channel = (function(Wreqr){
-    "use strict";
-  
-    var Channel = function(channelName) {
-      this.vent        = new Backbone.Wreqr.EventAggregator();
-      this.reqres      = new Backbone.Wreqr.RequestResponse();
-      this.commands    = new Backbone.Wreqr.Commands();
-      this.channelName = channelName;
-    };
-  
-    _.extend(Channel.prototype, {
-  
-      // Remove all handlers from the messaging systems of this channel
-      reset: function() {
-        this.vent.off();
-        this.vent.stopListening();
-        this.reqres.removeAllHandlers();
-        this.commands.removeAllHandlers();
-        return this;
-      },
-  
-      // Connect a hash of events; one for each messaging system
-      connectEvents: function(hash, context) {
-        this._connect('vent', hash, context);
-        return this;
-      },
-  
-      connectCommands: function(hash, context) {
-        this._connect('commands', hash, context);
-        return this;
-      },
-  
-      connectRequests: function(hash, context) {
-        this._connect('reqres', hash, context);
-        return this;
-      },
-  
-      // Attach the handlers to a given message system `type`
-      _connect: function(type, hash, context) {
-        if (!hash) {
-          return;
-        }
-  
-        context = context || this;
-        var method = (type === 'vent') ? 'on' : 'setHandler';
-  
-        _.each(hash, function(fn, eventName) {
-          this[type][method](eventName, _.bind(fn, context));
-        }, this);
-      }
-    });
-  
-  
-    return Channel;
-  })(Wreqr);
-  
-  // Wreqr.Radio
-  // --------------
-  //
-  // An object that lets you communicate with many channels.
-  Wreqr.radio = (function(Wreqr){
-    "use strict";
-  
-    var Radio = function() {
-      this._channels = {};
-      this.vent = {};
-      this.commands = {};
-      this.reqres = {};
-      this._proxyMethods();
-    };
-  
-    _.extend(Radio.prototype, {
-  
-      channel: function(channelName) {
-        if (!channelName) {
-          throw new Error('Channel must receive a name');
-        }
-  
-        return this._getChannel( channelName );
-      },
-  
-      _getChannel: function(channelName) {
-        var channel = this._channels[channelName];
-  
-        if(!channel) {
-          channel = new Wreqr.Channel(channelName);
-          this._channels[channelName] = channel;
-        }
-  
-        return channel;
-      },
-  
-      _proxyMethods: function() {
-        _.each(['vent', 'commands', 'reqres'], function(system) {
-          _.each( messageSystems[system], function(method) {
-            this[system][method] = proxyMethod(this, system, method);
-          }, this);
-        }, this);
-      }
-    });
-  
-  
-    var messageSystems = {
-      vent: [
-        'on',
-        'off',
-        'trigger',
-        'once',
-        'stopListening',
-        'listenTo',
-        'listenToOnce'
-      ],
-  
-      commands: [
-        'execute',
-        'setHandler',
-        'setHandlers',
-        'removeHandler',
-        'removeAllHandlers'
-      ],
-  
-      reqres: [
-        'request',
-        'setHandler',
-        'setHandlers',
-        'removeHandler',
-        'removeAllHandlers'
-      ]
-    };
-  
-    var proxyMethod = function(radio, system, method) {
-      return function(channelName) {
-        var messageSystem = radio._getChannel(channelName)[system];
-        var args = Array.prototype.slice.call(arguments, 1);
-  
-        return messageSystem[method].apply(messageSystem, args);
-      };
-    };
-  
-    return new Radio();
-  
-  })(Wreqr);
-  
-
-  return Backbone.Wreqr;
-
-}));
-
-},{"backbone":9,"underscore":8}],8:[function(require,module,exports){
+},{"backbone":9,"backbone.babysitter":5,"backbone.wreqr":8,"underscore":7}],7:[function(require,module,exports){
 //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -5135,7 +4693,444 @@ arguments[4][3][0].apply(exports,arguments)
   }
 }).call(this);
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
+// Backbone.Wreqr (Backbone.Marionette)
+// ----------------------------------
+// v1.3.6
+//
+// Copyright (c)2016 Derick Bailey, Muted Solutions, LLC.
+// Distributed under MIT license
+//
+// http://github.com/marionettejs/backbone.wreqr
+
+
+(function(root, factory) {
+
+  if (typeof define === 'function' && define.amd) {
+    define(['backbone', 'underscore'], function(Backbone, _) {
+      return factory(Backbone, _);
+    });
+  } else if (typeof exports !== 'undefined') {
+    var Backbone = require('backbone');
+    var _ = require('underscore');
+    module.exports = factory(Backbone, _);
+  } else {
+    factory(root.Backbone, root._);
+  }
+
+}(this, function(Backbone, _) {
+  "use strict";
+
+  var previousWreqr = Backbone.Wreqr;
+
+  var Wreqr = Backbone.Wreqr = {};
+
+  Backbone.Wreqr.VERSION = '1.3.6';
+
+  Backbone.Wreqr.noConflict = function () {
+    Backbone.Wreqr = previousWreqr;
+    return this;
+  };
+
+  // Handlers
+  // --------
+  // A registry of functions to call, given a name
+  
+  Wreqr.Handlers = (function(Backbone, _){
+    "use strict";
+    
+    // Constructor
+    // -----------
+  
+    var Handlers = function(options){
+      this.options = options;
+      this._wreqrHandlers = {};
+      
+      if (_.isFunction(this.initialize)){
+        this.initialize(options);
+      }
+    };
+  
+    Handlers.extend = Backbone.Model.extend;
+  
+    // Instance Members
+    // ----------------
+  
+    _.extend(Handlers.prototype, Backbone.Events, {
+  
+      // Add multiple handlers using an object literal configuration
+      setHandlers: function(handlers){
+        _.each(handlers, function(handler, name){
+          var context = null;
+  
+          if (_.isObject(handler) && !_.isFunction(handler)){
+            context = handler.context;
+            handler = handler.callback;
+          }
+  
+          this.setHandler(name, handler, context);
+        }, this);
+      },
+  
+      // Add a handler for the given name, with an
+      // optional context to run the handler within
+      setHandler: function(name, handler, context){
+        var config = {
+          callback: handler,
+          context: context
+        };
+  
+        this._wreqrHandlers[name] = config;
+  
+        this.trigger("handler:add", name, handler, context);
+      },
+  
+      // Determine whether or not a handler is registered
+      hasHandler: function(name){
+        return !! this._wreqrHandlers[name];
+      },
+  
+      // Get the currently registered handler for
+      // the specified name. Throws an exception if
+      // no handler is found.
+      getHandler: function(name){
+        var config = this._wreqrHandlers[name];
+  
+        if (!config){
+          return;
+        }
+  
+        return function(){
+          return config.callback.apply(config.context, arguments);
+        };
+      },
+  
+      // Remove a handler for the specified name
+      removeHandler: function(name){
+        delete this._wreqrHandlers[name];
+      },
+  
+      // Remove all handlers from this registry
+      removeAllHandlers: function(){
+        this._wreqrHandlers = {};
+      }
+    });
+  
+    return Handlers;
+  })(Backbone, _);
+  
+  // Wreqr.CommandStorage
+  // --------------------
+  //
+  // Store and retrieve commands for execution.
+  Wreqr.CommandStorage = (function(){
+    "use strict";
+  
+    // Constructor function
+    var CommandStorage = function(options){
+      this.options = options;
+      this._commands = {};
+  
+      if (_.isFunction(this.initialize)){
+        this.initialize(options);
+      }
+    };
+  
+    // Instance methods
+    _.extend(CommandStorage.prototype, Backbone.Events, {
+  
+      // Get an object literal by command name, that contains
+      // the `commandName` and the `instances` of all commands
+      // represented as an array of arguments to process
+      getCommands: function(commandName){
+        var commands = this._commands[commandName];
+  
+        // we don't have it, so add it
+        if (!commands){
+  
+          // build the configuration
+          commands = {
+            command: commandName, 
+            instances: []
+          };
+  
+          // store it
+          this._commands[commandName] = commands;
+        }
+  
+        return commands;
+      },
+  
+      // Add a command by name, to the storage and store the
+      // args for the command
+      addCommand: function(commandName, args){
+        var command = this.getCommands(commandName);
+        command.instances.push(args);
+      },
+  
+      // Clear all commands for the given `commandName`
+      clearCommands: function(commandName){
+        var command = this.getCommands(commandName);
+        command.instances = [];
+      }
+    });
+  
+    return CommandStorage;
+  })();
+  
+  // Wreqr.Commands
+  // --------------
+  //
+  // A simple command pattern implementation. Register a command
+  // handler and execute it.
+  Wreqr.Commands = (function(Wreqr, _){
+    "use strict";
+  
+    return Wreqr.Handlers.extend({
+      // default storage type
+      storageType: Wreqr.CommandStorage,
+  
+      constructor: function(options){
+        this.options = options || {};
+  
+        this._initializeStorage(this.options);
+        this.on("handler:add", this._executeCommands, this);
+  
+        Wreqr.Handlers.prototype.constructor.apply(this, arguments);
+      },
+  
+      // Execute a named command with the supplied args
+      execute: function(name){
+        name = arguments[0];
+        var args = _.rest(arguments);
+  
+        if (this.hasHandler(name)){
+          this.getHandler(name).apply(this, args);
+        } else {
+          this.storage.addCommand(name, args);
+        }
+  
+      },
+  
+      // Internal method to handle bulk execution of stored commands
+      _executeCommands: function(name, handler, context){
+        var command = this.storage.getCommands(name);
+  
+        // loop through and execute all the stored command instances
+        _.each(command.instances, function(args){
+          handler.apply(context, args);
+        });
+  
+        this.storage.clearCommands(name);
+      },
+  
+      // Internal method to initialize storage either from the type's
+      // `storageType` or the instance `options.storageType`.
+      _initializeStorage: function(options){
+        var storage;
+  
+        var StorageType = options.storageType || this.storageType;
+        if (_.isFunction(StorageType)){
+          storage = new StorageType();
+        } else {
+          storage = StorageType;
+        }
+  
+        this.storage = storage;
+      }
+    });
+  
+  })(Wreqr, _);
+  
+  // Wreqr.RequestResponse
+  // ---------------------
+  //
+  // A simple request/response implementation. Register a
+  // request handler, and return a response from it
+  Wreqr.RequestResponse = (function(Wreqr, _){
+    "use strict";
+  
+    return Wreqr.Handlers.extend({
+      request: function(name){
+        if (this.hasHandler(name)) {
+          return this.getHandler(name).apply(this, _.rest(arguments));
+        }
+      }
+    });
+  
+  })(Wreqr, _);
+  
+  // Event Aggregator
+  // ----------------
+  // A pub-sub object that can be used to decouple various parts
+  // of an application through event-driven architecture.
+  
+  Wreqr.EventAggregator = (function(Backbone, _){
+    "use strict";
+    var EA = function(){};
+  
+    // Copy the `extend` function used by Backbone's classes
+    EA.extend = Backbone.Model.extend;
+  
+    // Copy the basic Backbone.Events on to the event aggregator
+    _.extend(EA.prototype, Backbone.Events);
+  
+    return EA;
+  })(Backbone, _);
+  
+  // Wreqr.Channel
+  // --------------
+  //
+  // An object that wraps the three messaging systems:
+  // EventAggregator, RequestResponse, Commands
+  Wreqr.Channel = (function(Wreqr){
+    "use strict";
+  
+    var Channel = function(channelName) {
+      this.vent        = new Backbone.Wreqr.EventAggregator();
+      this.reqres      = new Backbone.Wreqr.RequestResponse();
+      this.commands    = new Backbone.Wreqr.Commands();
+      this.channelName = channelName;
+    };
+  
+    _.extend(Channel.prototype, {
+  
+      // Remove all handlers from the messaging systems of this channel
+      reset: function() {
+        this.vent.off();
+        this.vent.stopListening();
+        this.reqres.removeAllHandlers();
+        this.commands.removeAllHandlers();
+        return this;
+      },
+  
+      // Connect a hash of events; one for each messaging system
+      connectEvents: function(hash, context) {
+        this._connect('vent', hash, context);
+        return this;
+      },
+  
+      connectCommands: function(hash, context) {
+        this._connect('commands', hash, context);
+        return this;
+      },
+  
+      connectRequests: function(hash, context) {
+        this._connect('reqres', hash, context);
+        return this;
+      },
+  
+      // Attach the handlers to a given message system `type`
+      _connect: function(type, hash, context) {
+        if (!hash) {
+          return;
+        }
+  
+        context = context || this;
+        var method = (type === 'vent') ? 'on' : 'setHandler';
+  
+        _.each(hash, function(fn, eventName) {
+          this[type][method](eventName, _.bind(fn, context));
+        }, this);
+      }
+    });
+  
+  
+    return Channel;
+  })(Wreqr);
+  
+  // Wreqr.Radio
+  // --------------
+  //
+  // An object that lets you communicate with many channels.
+  Wreqr.radio = (function(Wreqr, _){
+    "use strict";
+  
+    var Radio = function() {
+      this._channels = {};
+      this.vent = {};
+      this.commands = {};
+      this.reqres = {};
+      this._proxyMethods();
+    };
+  
+    _.extend(Radio.prototype, {
+  
+      channel: function(channelName) {
+        if (!channelName) {
+          throw new Error('Channel must receive a name');
+        }
+  
+        return this._getChannel( channelName );
+      },
+  
+      _getChannel: function(channelName) {
+        var channel = this._channels[channelName];
+  
+        if(!channel) {
+          channel = new Wreqr.Channel(channelName);
+          this._channels[channelName] = channel;
+        }
+  
+        return channel;
+      },
+  
+      _proxyMethods: function() {
+        _.each(['vent', 'commands', 'reqres'], function(system) {
+          _.each( messageSystems[system], function(method) {
+            this[system][method] = proxyMethod(this, system, method);
+          }, this);
+        }, this);
+      }
+    });
+  
+  
+    var messageSystems = {
+      vent: [
+        'on',
+        'off',
+        'trigger',
+        'once',
+        'stopListening',
+        'listenTo',
+        'listenToOnce'
+      ],
+  
+      commands: [
+        'execute',
+        'setHandler',
+        'setHandlers',
+        'removeHandler',
+        'removeAllHandlers'
+      ],
+  
+      reqres: [
+        'request',
+        'setHandler',
+        'setHandlers',
+        'removeHandler',
+        'removeAllHandlers'
+      ]
+    };
+  
+    var proxyMethod = function(radio, system, method) {
+      return function(channelName) {
+        var messageSystem = radio._getChannel(channelName)[system];
+  
+        return messageSystem[method].apply(messageSystem, _.rest(arguments));
+      };
+    };
+  
+    return new Radio();
+  
+  })(Wreqr, _);
+  
+
+  return Backbone.Wreqr;
+
+}));
+
+},{"backbone":9,"underscore":11}],9:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -17600,7 +17595,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],16:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":6,"jquery":10,"underscore":11}],16:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $,
@@ -17622,7 +17617,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],17:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":6,"jquery":10,"underscore":11}],17:[function(require,module,exports){
 var Backbone = require('backbone'),
   $ = require('jquery')
   Backbone.$ = $;
@@ -17644,7 +17639,7 @@ module.exports = Marionette.CollectionView.extend({
 
 });
 
-},{"../views/oldTask":15,"../views/oldTaskEmpty":16,"backbone":9,"backbone.marionette":5,"jquery":10}],18:[function(require,module,exports){
+},{"../views/oldTask":15,"../views/oldTaskEmpty":16,"backbone":9,"backbone.marionette":6,"jquery":10}],18:[function(require,module,exports){
 var Backbone = require('backbone'),
     $ = require('jquery')
     Backbone.$ = $;
@@ -17654,7 +17649,7 @@ module.exports = Backbone.View.extend({
   el : $('body'),
 
   events : {
-    'keyup input' : 'checkUp',
+    'keyup input#apikey' : 'checkUp',
     'keydown input' : 'checkDown',
     'click .btn' : 'testing',
   },
@@ -17713,11 +17708,14 @@ module.exports = Backbone.View.extend({
 
   saveKey : function(e){
     var self = this,
-        apikey = e.target.value;
-    if( apikey.length == 40 ){
+        apikey = e.target.value,
+        username = this.$el.find('input#username').val();
+        console.info(username);
+    if ( username.length > 0 && apikey.length == 40 ) {
       chrome.storage.sync.set({
-        khaleesiKey : apikey
-      },function(){
+        khaleesiKey : apikey,
+        khaleesiUser : username
+      }, function(){
         self.correct();
       })
     }
@@ -17730,35 +17728,39 @@ module.exports = Backbone.View.extend({
   recoveryData : function(){
     var self = this;
     chrome.storage.sync.get({
-      khaleesiKey : ''
-    },function(item){
-      self.$el.find('input').val(item.khaleesiKey);
+      khaleesiKey : '',
+      khaleesiUser : ''
+    }, function(item){
+      self.$el.find('input#apikey').val(item.khaleesiKey);
       self.apikey = item.khaleesiKey;
+      self.username = item.khaleesiUser;
+      self.$el.find('input#username').val(self.username);
     });
   },
 
-  testing : function(){
-    var self = this,
-        urlPlus = 'tarea/?username=edgar&api_key='+self.apikey+'&format=json';
+  testing : function() {
+    var self = this;
+    this.recoveryData();
+    var urlPlus = 'user/?username=' + self.username + '&api_key=' + self.apikey + '&format=json';
     $.ajax({
       url : Backbone.app.url+urlPlus,
-      /*beforeSend: function (xhr){
-        xhr.setRequestHeader('Authorization', 'ApiKey evaguencia:'+self.apikey);
-      },*/
-      /*headers : {
-        'Authorization': 'ApiKey edgar:'+self.apikey
-      },*/
       method : 'get',
       contentType: 'application/json',
       dataType: 'json',
       processData:  false,
       success : function(data){
-        console.log(data);
+        self.printResult(data);
       },
       error : function(xhr, ajaxOption, bind){
         self.$el.find('#result').html(xhr.responseText);
       }
     });
+  },
+
+  printResult: function(data) {
+    var self = this,
+        result = data['objects'][0];
+    self.$el.find('div#result').html('<p>Fisrt name: '+ result['first_name'] +'</p><p>Last name: ' + result['last_name'] + '</p>');
   }
 
 });
@@ -17833,7 +17835,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"../views/timer":22,"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],20:[function(require,module,exports){
+},{"../views/timer":22,"backbone":9,"backbone.marionette":6,"jquery":10,"underscore":11}],20:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ = $,
@@ -17855,7 +17857,7 @@ module.exports = Marionette.ItemView.extend({
 
 });
 
-},{"backbone":9,"backbone.marionette":5,"jquery":10,"underscore":11}],21:[function(require,module,exports){
+},{"backbone":9,"backbone.marionette":6,"jquery":10,"underscore":11}],21:[function(require,module,exports){
 var Backbone = require('backbone'),
 	$ = require('jquery')
 	Backbone.$ =$;
@@ -17877,7 +17879,7 @@ module.exports = Marionette.CollectionView.extend({
 
 });
 
-},{"../views/task":19,"../views/taskEmpty":20,"backbone":9,"backbone.marionette":5,"jquery":10}],22:[function(require,module,exports){
+},{"../views/task":19,"../views/taskEmpty":20,"backbone":9,"backbone.marionette":6,"jquery":10}],22:[function(require,module,exports){
 var Backbone = require('backbone'),
 		$ = require('jquery'),
 		Ntf = require('../views/notification'),

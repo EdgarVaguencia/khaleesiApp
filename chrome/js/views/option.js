@@ -7,7 +7,7 @@ module.exports = Backbone.View.extend({
   el : $('body'),
 
   events : {
-    'keyup input' : 'checkUp',
+    'keyup input#apikey' : 'checkUp',
     'keydown input' : 'checkDown',
     'click .btn' : 'testing',
   },
@@ -66,11 +66,14 @@ module.exports = Backbone.View.extend({
 
   saveKey : function(e){
     var self = this,
-        apikey = e.target.value;
-    if( apikey.length == 40 ){
+        apikey = e.target.value,
+        username = this.$el.find('input#username').val();
+        console.info(username);
+    if ( username.length > 0 && apikey.length == 40 ) {
       chrome.storage.sync.set({
-        khaleesiKey : apikey
-      },function(){
+        khaleesiKey : apikey,
+        khaleesiUser : username
+      }, function(){
         self.correct();
       })
     }
@@ -83,35 +86,39 @@ module.exports = Backbone.View.extend({
   recoveryData : function(){
     var self = this;
     chrome.storage.sync.get({
-      khaleesiKey : ''
-    },function(item){
-      self.$el.find('input').val(item.khaleesiKey);
+      khaleesiKey : '',
+      khaleesiUser : ''
+    }, function(item){
+      self.$el.find('input#apikey').val(item.khaleesiKey);
       self.apikey = item.khaleesiKey;
+      self.username = item.khaleesiUser;
+      self.$el.find('input#username').val(self.username);
     });
   },
 
-  testing : function(){
-    var self = this,
-        urlPlus = 'tarea/?username=edgar&api_key='+self.apikey+'&format=json';
+  testing : function() {
+    var self = this;
+    this.recoveryData();
+    var urlPlus = 'user/?username=' + self.username + '&api_key=' + self.apikey + '&format=json';
     $.ajax({
       url : Backbone.app.url+urlPlus,
-      /*beforeSend: function (xhr){
-        xhr.setRequestHeader('Authorization', 'ApiKey evaguencia:'+self.apikey);
-      },*/
-      /*headers : {
-        'Authorization': 'ApiKey edgar:'+self.apikey
-      },*/
       method : 'get',
       contentType: 'application/json',
       dataType: 'json',
       processData:  false,
       success : function(data){
-        console.log(data);
+        self.printResult(data);
       },
       error : function(xhr, ajaxOption, bind){
         self.$el.find('#result').html(xhr.responseText);
       }
     });
+  },
+
+  printResult: function(data) {
+    var self = this,
+        result = data['objects'][0];
+    self.$el.find('div#result').html('<p>Fisrt name: '+ result['first_name'] +'</p><p>Last name: ' + result['last_name'] + '</p>');
   }
 
 });
