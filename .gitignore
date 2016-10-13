@@ -2,5 +2,5 @@
 chrome/js/node_modules/*
 chrome/js/npm-debug.log
 
-firefox/data/js/node_modules/*
-firefox/data/js/npm-debug.log
+firefox/node_modules/*
+firefox/npm-debug.log
