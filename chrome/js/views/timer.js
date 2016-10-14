@@ -116,7 +116,7 @@ module.exports = Backbone.View.extend({
 
     statusTask : function(ide, type) {
         var self = this;
-        var urlSend = Backbone.app.url+'pizarron/?username=' + Backbone.app.username + '&api_key=' + Backbone.app.apikey;
+        var urlSend = Backbone.app.url + '/api/v1/pizarron/?username=' + Backbone.app.username + '&api_key=' + Backbone.app.apikey;
         var user = Backbone.app.User.model;
         var params = JSON.stringify({
             created_by: '/api/v1/user/' + user.get('ide') + '/',

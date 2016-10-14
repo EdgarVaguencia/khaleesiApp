@@ -101,7 +101,7 @@ module.exports = Backbone.View.extend({
     this.recoveryData();
     var urlPlus = 'user/?username=' + self.username + '&api_key=' + self.apikey + '&format=json';
     $.ajax({
-      url : Backbone.app.url+urlPlus,
+      url : Backbone.app.url + '/api/v1/' + urlPlus,
       method : 'get',
       contentType: 'application/json',
       dataType: 'json',

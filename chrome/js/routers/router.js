@@ -62,7 +62,7 @@ module.exports = Backbone.Router.extend({
 
     resourceUser: function() {
         var self = this;
-        const urlUser = self.url + 'user/?username=' + self.username + '&api_key=' + self.apikey + '&format=json';
+        const urlUser = self.url + '/api/v1/user/?username=' + self.username + '&api_key=' + self.apikey + '&format=json';
         var connect = self.resourceConnect(urlUser);
 
         if (connect) {
@@ -76,7 +76,7 @@ module.exports = Backbone.Router.extend({
 
     resourceTask: function() {
         var self = this;
-        const urlta = self.url + 'tarea/?username=' + self.username + '&api_key=' + self.apikey + '&limit=100&format=json';
+        const urlta = self.url + '/api/v1/tarea/?username=' + self.username + '&api_key=' + self.apikey + '&limit=100&format=json';
         var connect = self.resourceConnect(urlta);
 
         if (connect) {
