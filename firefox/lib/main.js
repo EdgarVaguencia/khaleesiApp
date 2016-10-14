@@ -32,7 +32,7 @@ function handleClick(state) {
             position: button
         });
         if (ss.storage.userName !== undefined) {
-            panel.port.emit('resource', JSON.stringify({user: ss.storage.userName, api: ss.storage.apiKey}));
+            panel.port.emit('resource', JSON.stringify({user: ss.storage.userName, api: ss.storage.apiKey, ide: ss.storage.userId}));
         }else {
             panel.port.emit('resource');
         }
@@ -112,7 +112,8 @@ panel.port.on('data', function(data) {
 panel.port.on('save', function(data) {
     ss.storage.userName = data.username;
     ss.storage.apiKey = data.apikey;
+    ss.storage.userId = data.userid;
     console.info('Info Saved: ' + ss.storage.userName);
-    panel.port.emit('resource', JSON.stringify({user: ss.storage.userName, api: ss.storage.apiKey}));
+    panel.port.emit('resource', JSON.stringify({user: ss.storage.userName, api: ss.storage.apiKey, ide: ss.storage.userId}));
 });
 

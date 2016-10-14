@@ -18,6 +18,7 @@ self.port.on('resource', function(data) {
     data = JSON.parse(data);
     selfInit.user = data.user;
     selfInit.api = data.api;
+    selfInit.ide = data.ide;
     getTasks();
   }else{
     self.port.emit('login');
@@ -25,13 +26,13 @@ self.port.on('resource', function(data) {
 });
 
 // Render html
-self.port.on('render',function(html){
+self.port.on('render',function(html) {
   var selfInit = this;
   selfInit.el.innerHTML = html;
   listenEvents();
 });
 // Render html old Taks
-self.port.on('renderOld',function(html){
+self.port.on('renderOld',function(html) {
   var selfInit = this;
   selfInit.elOld.innerHTML = html;
   listenEvents();
@@ -62,7 +63,7 @@ function sendAction(obj){
       actionTask = obj.action;
     var urlSend = selfInit.UrlApi+'pizarron/?username=' + selfInit.user + '&api_key=' + selfInit.api;
     var params = JSON.stringify({
-      created_by: '/api/v1/user/4/',
+      created_by: '/api/v1/user/' + selfInit.ide + '/',
       status: actionTask,
       tarea: '/api/v1/tarea/' + idTask + '/' 
     });
@@ -92,6 +93,7 @@ function getUser(obj) {
         var result = document.getElementById('result');
         var data = data.objects[0];
         result.append(data.first_name + ' - ' + data.last_name);
+        obj.userid = data.id;
         self.port.emit('save', obj);
       }
     }
