@@ -18076,7 +18076,7 @@ module.exports = Marionette.ItemView.extend({
 	},
 
 	open: function() {
-		var urlTasks = Backbone.app.url + '/api/v1/track/tarea/add/';
+		var urlTasks = Backbone.app.url + '/admin/track/tarea/add/';
 		chrome.tabs.create({ 'url': urlTasks });
 	},
 
